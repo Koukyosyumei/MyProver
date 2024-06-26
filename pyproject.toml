@@ -1,0 +1,32 @@
+[project]
+
+name = "myprover"
+version = "0.0.0"
+authors = [
+  { name="Hideaki Takahashi" },
+]
+description = "A toy hoare-logic prover"
+readme = "README.md"
+license = {file = "LICENSE"}
+
+dependencies = [
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.isort]
+profile = "black"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = ["-ra", "--showlocals", "--strict-markers", "--strict-config"]
+xfail_strict = true
+testpaths = ["tests"]
+
+[tool.cibuildwheel]
+test-command = "pytest {project}/tests"
+test-extras = ["test"]
+test-skip = ["*universal2:arm64"]
+# Setuptools bug causes collision between pypy and cpython artifacts
+before-build = "rm -rf {project}/build"
