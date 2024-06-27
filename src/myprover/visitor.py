@@ -19,6 +19,7 @@ from .parser import (
     VInt,
     VBool,
     BinOpExpr,
+    SliceExpr,
     Op,
 )
 
@@ -122,6 +123,22 @@ class Py2AssernTranslator(ast.NodeVisitor):
 
     def visit_Index(self, node):
         return self.visit(node.value)
+    
+    def visit_Call(self, node):
+        if node.func.id == "assume":
+            return AssumeStmt(Parser(node.args[0].s).parse_expr())
+        elif node.func.id == "invariant":
+            return Parser(node.args[0].s).parse_expr()
+        
+    def visit_Slice(self, node):
+        lo, hi = [None] * 2
+        if node.lower:
+            lo = self.visit(node.lower)
+        if node.upper:
+            hi = self.visit(node.upper)
+        # if node.step:
+        #    step = self.visit(node.step)
+        return SliceExpr(lo, hi)
 
     def visit_Subscript(self, node):
         return SubscriptExpr(self.visit(node.value), self.visit(node.slice))
@@ -194,12 +211,6 @@ class Py2AssernTranslator(ast.NodeVisitor):
 
     def visit_Return(self, node):
         return SkipStmt()
-
-    def visit_Call(self, node):
-        if node.func.id == "assume":
-            return AssumeStmt(Parser(node.args[0].s).parse_expr())
-        elif node.func.id == "invariant":
-            return Parser(node.args[0].s).parse_expr()
 
     def visit_Pass(self, node):
         return SkipStmt()
