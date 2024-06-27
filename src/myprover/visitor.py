@@ -74,7 +74,7 @@ class Py2AssernTranslator(ast.NodeVisitor):
             raise ValueError(f"{node.op} is not supported")
         return self.fold_binops(op, node.values)
 
-    def visit_compare(self, node):
+    def visit_Compare(self, node):
         lv = self.visit(node.left)
         rv = self.visit(node.comparators[0])
         if type(node.ops[0]) == ast.Lt:
