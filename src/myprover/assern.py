@@ -103,7 +103,7 @@ class SliceExpr(Expr):
 
     def substitute(self, old_var, new_var):
         return self
-    
+
     def variables(self, old_var, new_var):
         return {}
 
@@ -179,7 +179,7 @@ class QuantificationExpr(Expr):
         self.var_type = var_type
         self.expr = expr
         self.bounded = bounded
-        
+
     def sanitize(self):
         if self.bounded:
             return
@@ -198,7 +198,6 @@ class QuantificationExpr(Expr):
         else:
             return QuantificationExpr("FORALL", bounded_var, e, self.var_type, True)
 
-
     def __repr__(self):
         return f"(forall  {self.var}:{self.var_type}. {self.expr})"
 
@@ -210,6 +209,6 @@ class QuantificationExpr(Expr):
             self.var_type,
             self.bounded,
         )
-    
+
     def variables(self, old_var, new_var):
         return {}

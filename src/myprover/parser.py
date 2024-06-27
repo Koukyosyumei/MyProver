@@ -1,5 +1,5 @@
 import re
-from .ast import (
+from .assern import (
     QuantificationExpr,
     BinOpExpr,
     Op,
@@ -122,11 +122,11 @@ class Parser:
     def consume(self, expected_token):
         if self.pos + 1 >= len(self.tokens):
             return False
-        if self.tokens[self.pos+1].lastgroup == expected_token:
+        if self.tokens[self.pos + 1].lastgroup == expected_token:
             self.pos += 1
             return True
         return False
-    
+
     def next_token(self):
         if self.pos < len(self.tokens):
             self.pos += 1
@@ -141,7 +141,7 @@ class Parser:
             return None
 
     def parse_expr(self):
-        if  self.consume("FORALL") or self.consume("EXISTS"):
+        if self.consume("FORALL") or self.consume("EXISTS"):
             # quantification = ('forall' | 'exists') (var | var [:var]) '::' logical
             quantifier = self.current_token().lastgroup
             var = self.parse_primary()
@@ -153,7 +153,9 @@ class Parser:
                 var_type = self.parse_primary()
             if self.consume("DOUBLECOLON"):
                 assertion_expr = self.parse_expr()
-                return QuantificationExpr(quantifier, var, assertion_expr, var_type).sanitize()
+                return QuantificationExpr(
+                    quantifier, var, assertion_expr, var_type
+                ).sanitize()
             else:
                 raise ValueError(f"Expect `::` at pos={self.pos}")
         else:
