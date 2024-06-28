@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from .assern import Expr
+from .claim import Expr
 
 
 class Stmt(metaclass=ABCMeta):

@@ -9,7 +9,7 @@ from .stmt import (
     SeqStmt,
     AssumeStmt,
 )
-from .assern import (
+from .claim import (
     Expr,
     BinOpExpr,
     UnOpExpr,
