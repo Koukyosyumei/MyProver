@@ -123,13 +123,13 @@ class Py2AssernTranslator(ast.NodeVisitor):
 
     def visit_Index(self, node):
         return self.visit(node.value)
-    
+
     def visit_Call(self, node):
         if node.func.id == "assume":
             return AssumeStmt(Parser(node.args[0].s).parse_expr())
         elif node.func.id == "invariant":
             return Parser(node.args[0].s).parse_expr()
-        
+
     def visit_Slice(self, node):
         lo, hi = [None] * 2
         if node.lower:
