@@ -8,6 +8,7 @@ from .stmt import (
     AssertStmt,
     SkipStmt,
     AssignStmt,
+    WhileStmt
 )
 from .parser import (
     UnOpExpr,
@@ -131,3 +132,37 @@ def type_infer_expr(sigma, expr):
 
     else:
         raise NotImplementedError(f"{type(expr)} is not suported")
+    
+
+def type_infer_stmt(sigma, stmt):
+    if isinstance(stmt, SkipStmt):
+        return sigma
+    elif isinstance(stmt, SeqStmt):
+        sigma1 = type_infer_stmt(sigma, stmt.s1)
+        return type_infer_stmt(sigma1, stmt.s2)
+    elif isinstance(stmt, AssignStmt):
+        type_of_expr = type_infer_expr(sigma, stmt.expr)
+        if stmt.var not in sigma:
+            sigma[stmt.var] = type_of_expr
+            return sigma
+        else:
+            if sigma[stmt.var] == TypeANY:
+                sigma[stmt.var] = type_of_expr
+            elif sigma[stmt.var] != type_infer_expr:
+                raise TypeError(f"Type Mismatch of {stmt.var}")
+            return sigma
+    elif isinstance(stmt, IfStmt):
+        type_infer_expr(sigma, TypeBOOL, stmt.cond)
+        sigma1 = type_infer_stmt(sigma, stmt.lb)
+        return type_infer_stmt(sigma, stmt.rb)
+    elif isinstance(stmt, AssertStmt):
+        type_infer_expr(sigma, TypeBOOL, stmt.e)
+        return sigma
+    elif isinstance(stmt, WhileStmt):
+        type_infer_expr(sigma, TypeBOOL, stmt.cond)
+        for iv in stmt.invariants:
+            type_infer_expr(sigma, TypeBOOL, iv)
+        return type_infer_stmt(sigma, stmt.body)
+    elif isinstance(stmt, HavocStmt):
+        return sigma
+    raise NotImplementedError(f"{type(stmt)} is not supported")
