@@ -3,19 +3,32 @@ def test_parser_arithmetic_operations():
 
     p = mp.parser.Parser("x == 1 + 1")
     e = p.parse_expr()
-    assert str(e) == "(BinOp (Var x) Op.Eq (BinOp (Literal VInt 1) Op.Add (Literal VInt 1)))"
+    assert (
+        str(e)
+        == "(BinOp (Var x) Op.Eq (BinOp (Literal VInt 1) Op.Add (Literal VInt 1)))"
+    )
 
     p = mp.parser.Parser("xy == 1 * 11")
     e = p.parse_expr()
-    assert str(e) == "(BinOp (Var xy) Op.Eq (BinOp (Literal VInt 1) Op.Mult (Literal VInt 11)))"
+    assert (
+        str(e)
+        == "(BinOp (Var xy) Op.Eq (BinOp (Literal VInt 1) Op.Mult (Literal VInt 11)))"
+    )
 
     p = mp.parser.Parser("x == -1 * 11")
     e = p.parse_expr()
-    assert str(e) == "(BinOp (Var x) Op.Eq (BinOp (UnOp Op.Minus (Literal VInt 1)) Op.Mult (Literal VInt 11)))"
+    assert (
+        str(e)
+        == "(BinOp (Var x) Op.Eq (BinOp (UnOp Op.Minus (Literal VInt 1)) Op.Mult (Literal VInt 11)))"
+    )
 
     p = mp.parser.Parser("x == -1 * -11")
     e = p.parse_expr()
-    assert str(e) == "(BinOp (Var x) Op.Eq (BinOp (UnOp Op.Minus (Literal VInt 1)) Op.Mult (UnOp Op.Minus (Literal VInt 11))))"
+    assert (
+        str(e)
+        == "(BinOp (Var x) Op.Eq (BinOp (UnOp Op.Minus (Literal VInt 1)) Op.Mult (UnOp Op.Minus (Literal VInt 11))))"
+    )
+
 
 def test_parser_comparison_operations():
     import myprover as mp
@@ -38,7 +51,10 @@ def test_parser_comparison_operations():
 
     p = mp.parser.Parser("(x >= 7) and (y < -1)")
     e = p.parse_expr()
-    assert str(e) == "(BinOp (BinOp (Var x) Op.Ge (Literal VInt 7)) Op.And (BinOp (Var y) Op.Lt (UnOp Op.Minus (Literal VInt 1))))"
+    assert (
+        str(e)
+        == "(BinOp (BinOp (Var x) Op.Ge (Literal VInt 7)) Op.And (BinOp (Var y) Op.Lt (UnOp Op.Minus (Literal VInt 1))))"
+    )
 
 
 def test_parser_subscript():
@@ -66,8 +82,24 @@ def test_parser_subscript():
 
     p = mp.parser.Parser("x[3*2:10]")
     e = p.parse_expr()
-    assert str(e) == "(Subscript (Var x) (Slice (BinOp (Literal VInt 3) Op.Mult (Literal VInt 2)) -> (Literal VInt 10)))"
+    assert (
+        str(e)
+        == "(Subscript (Var x) (Slice (BinOp (Literal VInt 3) Op.Mult (Literal VInt 2)) -> (Literal VInt 10)))"
+    )
 
     p = mp.parser.Parser("x[a+3*2:10//2]")
     e = p.parse_expr()
-    assert str(e) == "(Subscript (Var x) (Slice (BinOp (Var a) Op.Add (BinOp (Literal VInt 3) Op.Mult (Literal VInt 2))) -> (BinOp (Literal VInt 10) Op.Div (Literal VInt 2))))"
+    assert (
+        str(e)
+        == "(Subscript (Var x) (Slice (BinOp (Var a) Op.Add (BinOp (Literal VInt 3) Op.Mult (Literal VInt 2))) -> (BinOp (Literal VInt 10) Op.Div (Literal VInt 2))))"
+    )
+
+
+def test_parse_quantification():
+    import myprover as mp
+
+    p = mp.parser.Parser("forall x :: x == 1")
+    e = p.parse_expr()
+    assert (
+        str(e) == "(forall  (Var x$$0):None. (BinOp (Var x$$0) Op.Eq (Literal VInt 1)))"
+    )
