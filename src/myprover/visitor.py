@@ -1,6 +1,8 @@
 import ast
 from functools import reduce
 
+import z3
+
 from .stmt import (
     HavocStmt,
     IfStmt,
@@ -20,8 +22,10 @@ from .parser import (
     VBool,
     BinOpExpr,
     SliceExpr,
+    QuantificationExpr,
     Op,
 )
+from .type import TypeINT, TypeBOOL
 
 
 def is_invariant(y):
@@ -32,7 +36,7 @@ def is_invariant(y):
     )
 
 
-class Py2AssernTranslator(ast.NodeVisitor):
+class PyToClaim(ast.NodeVisitor):
     def walk_seq(self, stmts, need_visit=True):
         if stmts:
             hd, *stmts = stmts
@@ -217,6 +221,82 @@ class Py2AssernTranslator(ast.NodeVisitor):
 
     def visit_Expr(self, node):
         return self.visit(node.value)
+    
+    
+class ClaimToZ3:
+    def __init__(self, name_dict):
+        self.name_dict = name_dict
 
-    def visit(self, node):
-        return super().visit(node)
+    def visit(self, expr):
+        if isinstance(expr, LiteralExpr):
+            return self.visit_Literal(expr)
+        elif isinstance(expr, VarExpr):
+            return self.visit_Var(expr)
+        elif isinstance(expr, BinOpExpr):
+            return self.visit_BinOp(expr)
+        elif isinstance(expr, UnOpExpr):
+            return self.visit_Unop(expr)
+        elif isinstance(expr, QuantificationExpr):
+            return self.visit_Quantification(expr)
+        else:
+            raise NotImplementedError(f"`{type(expr)} is not supported")
+
+    def visit_Literal(self, node):
+        node.value.v
+
+    def visit_Var(self, node):
+        return self.name_dict[node.name]
+    
+    def visit_BinOp(self, node):
+        c1 = self.visit(node.e1)
+        c2 = self.visit(node.e2)
+
+        if node.op == Op.Add:
+            return c1 + c2
+        elif node.op == Op.Minus:
+            return c1 - c2
+        elif node.op == Op.Mult:
+            return c1 * c2
+        elif node.op == Op.Div:
+            return c1 / c2
+        elif node.op == Op.Mod:
+            return c1 % c2
+        elif node.op == Op.And:
+            return z3.And(c1, c2)
+        elif node.op == Op.Or:
+            return z3.Or(c1, c2)
+        elif node.op == Op.Implies:
+            return z3.Implies(c1, c2)
+        elif node.op == Op.Iff:
+            return z3.And(z3.Implies(c1, c2), z3.Implies(c2, c1))
+        elif node.op == Op.Eq:
+            return c1 == c2 
+        elif node.op == Op.NEq:
+            return z3.Not(c1 == c2)
+        elif node.op == Op.Gt:
+            return c1 > c2
+        elif node.op == Op.Ge:
+            return c1 >= c2
+        elif node.op == Op.Lt:
+            return c1 < c2
+        elif node.op == Op.Le:
+            return c1 <= c2 
+        else:
+            raise NotImplementedError(f"{node.op} is not supported")
+        
+    def visit_Unop(self, node):
+        c = self.visit(node.e)
+        if node.op == Op.NEq:
+            return -c
+        elif node.op == Op.Not:
+            return z3.Not(c)
+        else:
+            raise NotImplementedError(f"{node.op} is not supported")
+        
+    def visit_Quantification(self, node):
+        if isinstance(node.var_type, TypeINT):
+            self.name_dict[node.var.name] = z3.Int(node.var.name)
+        elif isinstance(node.var_type, TypeBOOL):
+            self.name_dict[node.var.name] = z3.Bool(node.var.name)
+        else:
+            raise NotImplementedError(f"{node.var_type} is not supported")
