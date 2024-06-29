@@ -5,7 +5,7 @@ from .expr import Expr
 
 class Stmt(metaclass=ABCMeta):
     @abstractmethod
-    def variables(self):
+    def collect_variables(self):
         pass
 
 
@@ -13,7 +13,7 @@ class SkipStmt(Stmt):
     def __repr__(self):
         return f"(Skip)"
 
-    def variables(self):
+    def collect_variables(self):
         return set()
 
 
@@ -25,8 +25,8 @@ class AssignStmt(Stmt):
     def __repr__(self):
         return f"(Assign {self.var} {self.expr})"
 
-    def variables(self):
-        return {self.var, *self.expr.variables()}
+    def collect_variables(self):
+        return {self.var, *self.expr.collect_variables()}
 
 
 class IfStmt(Stmt):
@@ -38,8 +38,8 @@ class IfStmt(Stmt):
     def __repr__(self):
         return f"(If {self.cond} {self.lb} {self.rb})"
 
-    def variables(self):
-        return {*self.cond.variables(), *self.lb.variables(), *self.rb.variables()}
+    def collect_variables(self):
+        return {*self.cond.collect_variables(), *self.lb.collect_variables(), *self.rb.collect_variables()}
 
 
 class SeqStmt(Stmt):
@@ -50,8 +50,8 @@ class SeqStmt(Stmt):
     def __repr__(self):
         return f"(Seq {self.s1} {self.s2})"
 
-    def variables(self):
-        return {*self.s1.variables(), *self.s2.variables()}
+    def collect_variables(self):
+        return {*self.s1.collect_variables(), *self.s2.collect_variables()}
 
 
 class AssumeStmt(Stmt):
@@ -61,8 +61,8 @@ class AssumeStmt(Stmt):
     def __repr__(self):
         return f"(Assume {self.e})"
 
-    def variables(self):
-        return {*self.e.variables()}
+    def collect_variables(self):
+        return {*self.e.collect_variables()}
 
 
 class AssertStmt(Stmt):
@@ -72,8 +72,8 @@ class AssertStmt(Stmt):
     def __repr__(self):
         return f"(Assert {self.e})"
 
-    def variables(self):
-        return {*self.e.variables()}
+    def collect_variables(self):
+        return {*self.e.collect_variables()}
 
 
 class WhileStmt(Stmt):
@@ -85,8 +85,8 @@ class WhileStmt(Stmt):
     def __repr__(self):
         return f"(While {self.cond} {self.body})"
 
-    def variables(self):
-        return {*self.body.variables()}
+    def collect_variables(self):
+        return {*self.body.collect_variables()}
 
 
 class HavocStmt(Stmt):
@@ -96,5 +96,5 @@ class HavocStmt(Stmt):
     def __repr__(self):
         return f"(Havoc {self.var})"
 
-    def variables(self):
+    def collect_variables(self):
         return set()

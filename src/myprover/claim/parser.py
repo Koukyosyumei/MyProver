@@ -111,8 +111,7 @@ token_regex = "|".join(f"(?P<{pair[0]}>{pair[1]})" for pair in token_specificati
 tokens = re.compile(token_regex)
 
 
-# Parser
-class Parser:
+class ClaimParser:
     def __init__(self, text):
         self.tokens = [
             match for match in tokens.finditer(text) if match.lastgroup != "WHITESPACE"

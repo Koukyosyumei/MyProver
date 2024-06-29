@@ -6,7 +6,7 @@ from .value import Value, VInt
 
 class Expr(metaclass=ABCMeta):
     @abstractmethod
-    def variables(self):
+    def collect_variables(self):
         pass
 
     @abstractmethod
@@ -21,7 +21,7 @@ class VarExpr(Expr):
     def __repr__(self):
         return f"(Var {self.name})"
 
-    def variables(self):
+    def collect_variables(self):
         return {self.name}
 
     def substitute(self, old_var, new_var):
@@ -42,7 +42,7 @@ class SliceExpr(Expr):
     def substitute(self, old_var, new_var):
         return self
 
-    def variables(self, old_var, new_var):
+    def collect_variables(self, old_var, new_var):
         return {}
 
 
@@ -54,8 +54,8 @@ class SubscriptExpr(Expr):
     def __repr__(self):
         return f"(Subscript {self.var} {self.subscript})"
 
-    def variables(self):
-        return self.var.variables().union(self.subscript.variables())
+    def collect_variables(self):
+        return self.var.collect_variables().union(self.subscript.collect_variables())
 
     def substitute(self, old_var, new_var):
         return self
@@ -68,7 +68,7 @@ class LiteralExpr(Expr):
     def __repr__(self):
         return f"(Literal {self.value})"
 
-    def variables(self):
+    def collect_variables(self):
         return set()
 
     def substitute(self, old_var, new_var):
@@ -83,8 +83,8 @@ class UnOpExpr(Expr):
     def __repr__(self):
         return f"(UnOp {self.op} {self.e})"
 
-    def variables(self):
-        return {*self.e.variables()}
+    def collect_variables(self):
+        return {*self.e.collect_variables()}
 
     def substitute(self, old_var, new_var):
         return UnOpExpr(self.op, self.e.substitute(old_var, new_var))
@@ -99,8 +99,8 @@ class BinOpExpr(Expr):
     def __repr__(self):
         return f"(BinOp {self.e1} {self.op} {self.e2})"
 
-    def variables(self):
-        return {*self.e1.variables(), *self.e2.variables()}
+    def collect_variables(self):
+        return {*self.e1.collect_variables(), *self.e2.collect_variables()}
 
     def substitute(self, old_var, new_var):
         return BinOpExpr(
@@ -148,5 +148,5 @@ class QuantificationExpr(Expr):
             self.bounded,
         )
 
-    def variables(self, old_var, new_var):
+    def collect_variables(self, old_var, new_var):
         return {}

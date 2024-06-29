@@ -12,7 +12,7 @@ from .claim import (
     IfStmt,
     LiteralExpr,
     Op,
-    Parser,
+    ClaimParser,
     QuantificationExpr,
     SeqStmt,
     SkipStmt,
@@ -128,9 +128,9 @@ class PyToClaim(ast.NodeVisitor):
 
     def visit_Call(self, node):
         if node.func.id == "assume":
-            return AssumeStmt(Parser(node.args[0].s).parse_expr())
+            return AssumeStmt(ClaimParser(node.args[0].s).parse_expr())
         elif node.func.id == "invariant":
-            return Parser(node.args[0].s).parse_expr()
+            return ClaimParser(node.args[0].s).parse_expr()
 
     def visit_Slice(self, node):
         lo, hi = [None] * 2
@@ -176,7 +176,7 @@ class PyToClaim(ast.NodeVisitor):
                 )
             )
         )
-        loop_targets = body.variables()
+        loop_targets = body.collect_variables()
         havocs = list(map(HavocStmt, loop_targets))
         invariants = (
             LiteralExpr(VBool(True))

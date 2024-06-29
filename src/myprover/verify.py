@@ -3,7 +3,7 @@ import inspect
 
 import z3
 
-from .claim import BinOpExpr, Op, Parser, UnOpExpr
+from .claim import BinOpExpr, Op, ClaimParser, UnOpExpr
 from .hoare import weakest_precondition
 from .type import TypeBOOL, TypeINT, type_infer_expr, type_infer_stmt
 from .visitor import ClaimToZ3, PyToClaim
@@ -18,8 +18,8 @@ class Verifier:
         py_ast = ast.parse(code)
         claim_ast = PyToClaim().visit(py_ast)
 
-        precond_expr = Parser(precond_str).parse_expr()
-        postcond_expr = Parser(postcond_str).parse_expr()
+        precond_expr = ClaimParser(precond_str).parse_expr()
+        postcond_expr = ClaimParser(postcond_str).parse_expr()
 
         sigma = type_infer_stmt(self.fname2var_types[func.__name__], claim_ast)
         type_infer_expr(sigma, TypeBOOL, precond_expr)

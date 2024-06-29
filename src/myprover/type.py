@@ -9,7 +9,7 @@ from .claim import (
     IfStmt,
     LiteralExpr,
     Op,
-    Parser,
+    ClaimParser,
     QuantificationExpr,
     SeqStmt,
     SkipStmt,
