@@ -9,7 +9,7 @@ from .type import TypeBOOL, TypeINT, resolve_expr_type, resolve_stmt_type
 from .visitor import ClaimToZ3, PyToClaim
 
 
-class Verifier:
+class MyProver:
     def __init__(self):
         self.fname2var_types = {}
 
