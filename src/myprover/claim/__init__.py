@@ -1,8 +1,8 @@
 from .expr import (  # noqa : F401
     BinOpExpr,
+    Expr,
     LiteralExpr,
     Op,
-    Expr,
     QuantificationExpr,
     SliceExpr,
     SubscriptExpr,
@@ -18,7 +18,7 @@ from .stmt import (  # noqa : F401
     IfStmt,
     SeqStmt,
     SkipStmt,
-    WhileStmt,
     Stmt,
+    WhileStmt,
 )
 from .value import VBool, VInt  # noqa : F401
