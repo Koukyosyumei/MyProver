@@ -15,7 +15,7 @@ def test_py2claim():
     mp_tree = mp.PyToClaim().visit(py_tree)
     assert (
         str(mp_tree)
-        == "(Seq (Assign a (BinOp (Literal VInt 1) Op.Add (Literal VInt 1))) (Assign b (BinOp (Literal VInt 5) Op.Mult (Literal VInt 2))))"
+        == "(Seq (Assign (Var a) (BinOp (Literal VInt 1) Op.Add (Literal VInt 1))) (Assign (Var b) (BinOp (Literal VInt 5) Op.Mult (Literal VInt 2))))"
     )
 
     source = "x <= 2\nx == 2"
@@ -31,7 +31,7 @@ def test_py2claim():
     mp_tree = mp.PyToClaim().visit(py_tree)
     assert (
         str(mp_tree)
-        == "(Seq (If (BinOp (Var x) Op.Eq (Literal VInt 1)) (Seq (Assign y (BinOp (Literal VInt 30) Op.Mod (Literal VInt 2))) (Skip)) (Seq (Assign z (Literal VInt 2)) (Skip))) (Skip))"
+        == "(Seq (If (BinOp (Var x) Op.Eq (Literal VInt 1)) (Seq (Assign (Var y) (BinOp (Literal VInt 30) Op.Mod (Literal VInt 2))) (Skip)) (Seq (Assign (Var z) (Literal VInt 2)) (Skip))) (Skip))"
     )
 
     source = "x = y[1:]\nx = y[:1]\nx = y[1:3]"
@@ -39,16 +39,17 @@ def test_py2claim():
     mp_tree = mp.PyToClaim().visit(py_tree)
     assert (
         str(mp_tree)
-        == "(Seq (Seq (Assign x (Subscript (Var y) (Slice (Literal VInt 1) -> None))) (Assign x (Subscript (Var y) (Slice (Literal VInt 0) -> (Literal VInt 1))))) (Assign x (Subscript (Var y) (Slice (Literal VInt 1) -> (Literal VInt 3)))))"
+        == "(Seq (Seq (Assign (Var x) (Subscript (Var y) (Slice (Literal VInt 1) -> None))) (Assign (Var x) (Subscript (Var y) (Slice (Literal VInt 0) -> (Literal VInt 1))))) (Assign (Var x) (Subscript (Var y) (Slice (Literal VInt 1) -> (Literal VInt 3)))))"
     )
 
     source = "def f(n):\n    while x > 0:\n        x = x - 1"
     py_tree = ast.parse(source)
     mp_tree = mp.PyToClaim().visit(py_tree)
-    assert (
-        str(mp_tree)
-        == "(Seq (Seq (Seq (Assert (Literal VBool True)) (Havoc x)) (Assume (Literal VBool True))) (If (BinOp (Var x) Op.Gt (Literal VInt 0)) (Seq (Seq (Seq (Assign x (BinOp (Var x) Op.Minus (Literal VInt 1))) (Skip)) (Assert (Literal VBool True))) (Assume (Literal VBool False))) (Skip)))"
-    )
+    assert False
+    #assert (
+    #    str(mp_tree)
+    #    == "(Seq (Seq (Seq (Seq (Assert (Literal VBool True)) (Havoc x)) (Havoc (Var x))) (Assume (Literal VBool True))) (If (BinOp (Var x) Op.Gt (Literal VInt 0)) (Seq (Seq (Seq (Assign (Var x) (BinOp (Var x) Op.Minus (Literal VInt 1))) (Skip)) (Assert (Literal VBool True))) (Assume (Literal VBool False))) (Skip)))"
+    #)
 
 
 @pytest.fixture

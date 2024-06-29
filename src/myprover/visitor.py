@@ -178,6 +178,7 @@ class PyToClaim(ast.NodeVisitor):
         )
         loop_targets = body.collect_variables()
         havocs = list(map(HavocStmt, loop_targets))
+        print("havocs -- ", havocs)
         invariants = (
             LiteralExpr(VBool(True))
             if not invars
@@ -212,7 +213,7 @@ class PyToClaim(ast.NodeVisitor):
             varname = self.visit(node.targets[0])
         else:
             varname = node.targets[0].id
-        return AssignStmt(varname, self.visit(node.value))
+        return AssignStmt(VarExpr(varname), self.visit(node.value))
 
     def visit_Return(self, node):
         return SkipStmt()
