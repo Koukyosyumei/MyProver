@@ -102,4 +102,4 @@ def derive_weakest_precondition(command_stmt: Stmt, post_condition: Expr, var2ty
     elif isinstance(command_stmt, AssumeStmt):
         return BinOpExpr(command_stmt.e, Op.Implies, post_condition), set()
     elif isinstance(command_stmt, AssertStmt):
-        return BinOpExpr(post_condition, command_stmt.e, Op.Implies), set()
+        return BinOpExpr(post_condition, Op.Implies, command_stmt.e), set()

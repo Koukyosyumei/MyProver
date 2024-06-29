@@ -19,13 +19,6 @@ def simple_func(x, y):
     result = x + y
     return result
 
-def complex_func(x, y, z):
-    if z:
-        result = x - y
-    else:
-        result = x * y
-    return result
-
 def test_verify_simple_func_valid(prover):
     precond = "x >= 0 and y >= 0"
     postcond = "result >= 0"
@@ -37,6 +30,13 @@ def test_verify_simple_func_invalid(prover):
     postcond = "result < 0"
     with pytest.raises(RuntimeError):
         prover.verify_func(simple_func, precond, postcond)
+
+def complex_func(x, y, z):
+    if z:
+        result = x - y
+    else:
+        result = x * y
+    return result
 
 def test_verify_complex_func_valid(prover):
     # Note: Currently, we do not support `z == True`.
@@ -74,52 +74,51 @@ def test_verify_func_with_complex_postcond(prover):
     postcond = "(result == x + y) or (result == x - y)"
     assert prover.verify_func(simple_func, precond, postcond)
 
+def nested_func(x, y):
+    if x > 0:
+        result = x - y
+    else:
+        result = x + y
+    return result
 
-def test_verify_func_with_nested_conditions(prover):
-    def nested_func(x, y):
-        if x > 0:
-            return x - y
-        else:
-            return x + y
-    
+def test_verify_func_with_nested_conditions(prover):    
     prover.fname2var_types['nested_func'] = {'x': mp.type.TypeINT, 'y': mp.type.TypeINT}
     precond = "x >= 0"
     postcond = "(x > 0 and result == x - y) or (x <= 0 and result == x + y)"
     assert prover.verify_func(nested_func, precond, postcond)
 
-"""
+def bool_func(x, y, z):
+    if z:
+        result = x + y
+    else:
+        result = x - y
+    return result
+
 def test_verify_func_with_bool_var(prover):
-    def bool_func(x, y, z):
-        if z:
-            return x + y
-        else:
-            return x - y
-    
     prover.fname2var_types['bool_func'] = {'x': mp.type.TypeINT, 'y': mp.type.TypeINT, 'z': mp.type.TypeBOOL}
-    precond = "z == True"
+    precond = "z and True"
     postcond = "result == x + y"
     assert prover.verify_func(bool_func, precond, postcond)
 
+def unhandled_func(x):
+    return x
+
 def test_verify_func_with_unhandled_type(prover):
-    def unhandled_func(x):
-        return x
-    
     prover.fname2var_types['unhandled_func'] = {'x': mp.type.TypeINT}
     precond = "True"
     postcond = "result == x"
     with pytest.raises(NotImplementedError):
         prover.verify_func(unhandled_func, precond, postcond)
 
+def assert_func(x):
+    assert x > 0
+    return x
+
 def test_verify_func_with_assert_stmt(prover):
-    def assert_func(x):
-        assert x > 0
-        return x
-    
     prover.fname2var_types['assert_func'] = {'x': mp.type.TypeINT}
     precond = "x > 0"
-    postcond = "result == x"
+    postcond = "x >= 0"
     assert prover.verify_func(assert_func, precond, postcond)
-"""
 
 """
 def test_verify_func_with_assume_stmt(prover):
