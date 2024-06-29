@@ -20,10 +20,24 @@ from .claim import (
 
 
 def derive_weakest_precondition(command_stmt: Stmt, post_condition: Expr, var2type):
-    """Return the weakest precondition that is necessary to meet the
-    post_condition after executing the command_stmt.
+    """Computes the weakest precondition necessary to meet the post_condition after executing the command_stmt.
+
+    Given a command statement `command_stmt` and a post-condition `post_condition`, this function calculates
+    the weakest precondition (wp) such that if the wp holds before the execution of `command_stmt`,
+    then `post_condition` will hold after its execution. This is based on the Hoare logic formulation:
 
     {P} C {Q} <=> P => wp(C, Q)
+
+    Args:
+        command_stmt (Stmt): The command statement whose weakest precondition is to be calculated.
+        post_condition (Expr): The post-condition expression that should hold after the execution of the command.
+        var2type (dict): A dictionary mapping variable names to their types.
+
+    Returns:
+        tuple: A tuple containing the weakest precondition expression and a set of auxiliary conditions.
+
+    Raises:
+        TypeError: If the type of command_stmt is not recognized or not supported.
     """
     if isinstance(command_stmt, SkipStmt):
         # wp(skip, Q <=> Q
@@ -36,13 +50,19 @@ def derive_weakest_precondition(command_stmt: Stmt, post_condition: Expr, var2ty
         )
     elif isinstance(command_stmt, SeqStmt):
         # wp(C1;C2, Q) <=> wp(C1, wp(C2, Q))
-        wp2, ac2 = derive_weakest_precondition(command_stmt.s2, post_condition, var2type)
+        wp2, ac2 = derive_weakest_precondition(
+            command_stmt.s2, post_condition, var2type
+        )
         wp1, ac1 = derive_weakest_precondition(command_stmt.s1, wp2, var2type)
         return (wp1, ac1.union(ac2))
     elif isinstance(command_stmt, IfStmt):
         # wp(if A then B else C, Q) <=> (A => wp(B, Q)) ^ (!A => wp(C, Q))
-        wp1, ac1 = derive_weakest_precondition(command_stmt.lb, post_condition, var2type)
-        wp2, ac2 = derive_weakest_precondition(command_stmt.rb, post_condition, var2type)
+        wp1, ac1 = derive_weakest_precondition(
+            command_stmt.lb, post_condition, var2type
+        )
+        wp2, ac2 = derive_weakest_precondition(
+            command_stmt.rb, post_condition, var2type
+        )
         cond = BinOpExpr(
             BinOpExpr(command_stmt.cond, Op.Implies, wp1),
             Op.And,
