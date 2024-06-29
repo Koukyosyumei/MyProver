@@ -187,21 +187,21 @@ def type_infer_stmt(sigma, stmt):
             else:
                 return isupdated
     elif isinstance(stmt, IfStmt):
-        actual, isupdated_cond = type_infer_expr(sigma, stmt.cond)
-        check_and_update_sigma(stmt.cond, actual, TypeBOOL, sigma)
+        actual, isupdated_cond1 = type_infer_expr(sigma, stmt.cond)
+        _, isupdated_cond2 = check_and_update_sigma(stmt.cond, actual, TypeBOOL, sigma)
         isupdated_lb = type_infer_stmt(sigma, stmt.lb)
         isupdated_rb = type_infer_stmt(sigma, stmt.rb)
-        return isupdated_cond or isupdated_lb or isupdated_rb
+        return isupdated_cond1 or isupdated_cond2 or isupdated_lb or isupdated_rb
     elif isinstance(stmt, AssertStmt):
         actual, isupdated_1 = type_infer_expr(sigma, stmt.e)
-        isupdated_2 = check_and_update_sigma(stmt.e, actual, TypeBOOL, sigma)
+        _, isupdated_2 = check_and_update_sigma(stmt.e, actual, TypeBOOL, sigma)
         return isupdated_1 or isupdated_2
     elif isinstance(stmt, WhileStmt):
         actual, isupdated = type_infer_expr(sigma, stmt.cond)
-        tmp_isupdated = check_and_update_sigma(stmt.cond, actual, TypeBOOL, sigma)
+        _, tmp_isupdated = check_and_update_sigma(stmt.cond, actual, TypeBOOL, sigma)
         isupdated = isupdated or tmp_isupdated
         actual, tmp_isupdated_1 = type_infer_expr(sigma, TypeBOOL, stmt.invariant)
-        tmp_isupdated_2 = check_and_update_sigma(stmt.invariant, actual, TypeBOOL, sigma)
+        _, tmp_isupdated_2 = check_and_update_sigma(stmt.invariant, actual, TypeBOOL, sigma)
         isupdated = isupdated or tmp_isupdated_1 or tmp_isupdated_2
         _isupdated = type_infer_stmt(sigma, stmt.body)
         return isupdated or _isupdated

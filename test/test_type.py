@@ -171,3 +171,15 @@ def test_type_infer_stmt():
         ),
     )
     assert len(sigma) == 0
+
+    sigma = {}
+    assert not mp.type.type_infer_stmt(
+        sigma,
+        mp.claim.AssertStmt(mp.claim.BinOpExpr(mp.claim.LiteralExpr(mp.claim.VInt(1)), mp.claim.Op.Eq, mp.claim.LiteralExpr(mp.claim.VInt(1))))
+    )
+    assert len(sigma) == 0
+
+    sigma = {}
+    assert mp.type.type_infer_stmt(sigma, mp.claim.SeqStmt(mp.claim.AssignStmt(mp.claim.VarExpr("x"), mp.claim.LiteralExpr(mp.claim.VInt(1))), mp.claim.SkipStmt()))
+    assert len(sigma) == 1
+    assert sigma["x"] == mp.type.TypeINT

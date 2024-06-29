@@ -47,3 +47,5 @@ class Verifier:
                 model = solver.model()
                 raise RuntimeError(f"Found a violoated condition: {cond} - {model}")
             solver.pop()
+
+        return True
