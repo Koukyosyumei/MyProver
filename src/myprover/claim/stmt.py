@@ -39,7 +39,11 @@ class IfStmt(Stmt):
         return f"(If {self.cond} {self.lb} {self.rb})"
 
     def collect_variables(self):
-        return {*self.cond.collect_variables(), *self.lb.collect_variables(), *self.rb.collect_variables()}
+        return {
+            *self.cond.collect_variables(),
+            *self.lb.collect_variables(),
+            *self.rb.collect_variables(),
+        }
 
 
 class SeqStmt(Stmt):
@@ -77,9 +81,9 @@ class AssertStmt(Stmt):
 
 
 class WhileStmt(Stmt):
-    def __init__(self, invs, cond: Expr, body: Stmt):
+    def __init__(self, invariant: Expr, cond: Expr, body: Stmt):
+        self.invariant = invariant
         self.cond = cond
-        self.invariants = invs
         self.body = body if body is not None else SkipStmt()
 
     def __repr__(self):

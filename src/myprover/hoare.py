@@ -48,17 +48,17 @@ def weakest_precondition(command_stmt: Stmt, post_condition: Expr, var2type):
         return cond, ac1.union(ac2)
     elif type(command_stmt) == WhileStmt:
         if command_stmt is None:
-            invariants = LiteralExpr(VBool(True))
+            invariant = LiteralExpr(VBool(True))
         else:
-            invariants = command_stmt.invariants
-        wp, ac = weakest_precondition(command_stmt.body, invariants, var2type)
-        return invariants, ac.union(
+            invariant = command_stmt.invariant
+        wp, ac = weakest_precondition(command_stmt.body, invariant, var2type)
+        return invariant, ac.union(
             {
                 BinOpExpr(
-                    BinOpExpr(invariants, Op.And, command_stmt.cond), Op.Implies, wp
+                    BinOpExpr(invariant, Op.And, command_stmt.cond), Op.Implies, wp
                 ),
                 BinOpExpr(
-                    BinOpExpr(invariants, Op.And, UnOpExpr(Op.Not, command_stmt.cond)),
+                    BinOpExpr(invariant, Op.And, UnOpExpr(Op.Not, command_stmt.cond)),
                     Op.Implies,
                     post_condition,
                 ),
