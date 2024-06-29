@@ -4,8 +4,8 @@ import inspect
 import z3
 
 from .claim import BinOpExpr, Op, ClaimParser, UnOpExpr
-from .hoare import weakest_precondition
-from .type import TypeBOOL, TypeINT, type_infer_expr, type_infer_stmt
+from .hoare import derive_weakest_precondition
+from .type import TypeBOOL, TypeINT, resolve_expr_type, resolve_stmt_type
 from .visitor import ClaimToZ3, PyToClaim
 
 
@@ -21,11 +21,11 @@ class Verifier:
         precond_expr = ClaimParser(precond_str).parse_expr()
         postcond_expr = ClaimParser(postcond_str).parse_expr()
 
-        sigma = type_infer_stmt(self.fname2var_types[func.__name__], claim_ast)
-        type_infer_expr(sigma, TypeBOOL, precond_expr)
-        type_infer_expr(sigma, TypeBOOL, postcond_expr)
+        sigma = resolve_stmt_type(self.fname2var_types[func.__name__], claim_ast)
+        resolve_expr_type(sigma, TypeBOOL, precond_expr)
+        resolve_expr_type(sigma, TypeBOOL, postcond_expr)
 
-        wp, ac = weakest_precondition(claim_ast, postcond_expr, sigma)
+        wp, ac = derive_weakest_precondition(claim_ast, postcond_expr, sigma)
         conditions_to_be_proved = [BinOpExpr(precond_expr, Op.Implies, wp)] + ac
 
         z3_sigma = {}

@@ -19,7 +19,7 @@ from .claim import (
 )
 
 
-def weakest_precondition(command_stmt: Stmt, post_condition: Expr, var2type):
+def derive_weakest_precondition(command_stmt: Stmt, post_condition: Expr, var2type):
     """Return the weakest precondition that is necessary to meet the
     post_condition after executing the command_stmt.
 
@@ -36,13 +36,13 @@ def weakest_precondition(command_stmt: Stmt, post_condition: Expr, var2type):
         )
     elif isinstance(command_stmt, SeqStmt):
         # wp(C1;C2, Q) <=> wp(C1, wp(C2, Q))
-        wp2, ac2 = weakest_precondition(command_stmt.s2, post_condition, var2type)
-        wp1, ac1 = weakest_precondition(command_stmt.s1, wp2, var2type)
+        wp2, ac2 = derive_weakest_precondition(command_stmt.s2, post_condition, var2type)
+        wp1, ac1 = derive_weakest_precondition(command_stmt.s1, wp2, var2type)
         return (wp1, ac1.union(ac2))
     elif isinstance(command_stmt, IfStmt):
         # wp(if A then B else C, Q) <=> (A => wp(B, Q)) ^ (!A => wp(C, Q))
-        wp1, ac1 = weakest_precondition(command_stmt.lb, post_condition, var2type)
-        wp2, ac2 = weakest_precondition(command_stmt.rb, post_condition, var2type)
+        wp1, ac1 = derive_weakest_precondition(command_stmt.lb, post_condition, var2type)
+        wp2, ac2 = derive_weakest_precondition(command_stmt.rb, post_condition, var2type)
         cond = BinOpExpr(
             BinOpExpr(command_stmt.cond, Op.Implies, wp1),
             Op.And,
@@ -54,7 +54,7 @@ def weakest_precondition(command_stmt: Stmt, post_condition: Expr, var2type):
             invariant = LiteralExpr(VBool(True))
         else:
             invariant = command_stmt.invariant
-        wp, ac = weakest_precondition(command_stmt.body, invariant, var2type)
+        wp, ac = derive_weakest_precondition(command_stmt.body, invariant, var2type)
         return invariant, ac.union(
             {
                 BinOpExpr(

@@ -4,16 +4,16 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
 
 
-def test_weakest_precondition_simple():
+def test_derive_weakest_precondition_simple():
     import myprover as mp
 
-    result = mp.weakest_precondition(
+    result = mp.derive_weakest_precondition(
         mp.claim.SkipStmt(), mp.claim.LiteralExpr(mp.claim.VBool(True)), {}
     )
     assert str(result[0]) == "(Literal VBool True)"
     assert len(result[1]) == 0
 
-    result = mp.weakest_precondition(
+    result = mp.derive_weakest_precondition(
         mp.claim.AssignStmt(mp.claim.VarExpr("x"), mp.claim.VarExpr("y")),
         mp.claim.BinOpExpr(
             mp.claim.VarExpr("x"), mp.claim.Op.Eq, mp.claim.LiteralExpr(1)
@@ -23,7 +23,7 @@ def test_weakest_precondition_simple():
     assert str(result[0]) == "(BinOp (Var y) Op.Eq (Literal 1))"
     assert len(result[1]) == 0
 
-    result = mp.weakest_precondition(
+    result = mp.derive_weakest_precondition(
         mp.claim.SeqStmt(
             mp.claim.SkipStmt(),
             mp.claim.AssignStmt(mp.claim.VarExpr("x"), mp.claim.LiteralExpr(1)),
@@ -36,7 +36,7 @@ def test_weakest_precondition_simple():
     assert str(result[0]) == "(BinOp (Literal 1) Op.Eq (Literal 1))"
     assert len(result[1]) == 0
 
-    result = mp.weakest_precondition(
+    result = mp.derive_weakest_precondition(
         mp.claim.IfStmt(
             mp.claim.BinOpExpr(
                 mp.claim.VarExpr("x"), mp.claim.Op.Eq, mp.claim.LiteralExpr(1)
@@ -55,7 +55,7 @@ def test_weakest_precondition_simple():
     )
     assert len(result[1]) == 0
 
-    result = mp.weakest_precondition(
+    result = mp.derive_weakest_precondition(
         mp.claim.WhileStmt(
             mp.claim.BinOpExpr(
                 mp.claim.VarExpr("x"), mp.claim.Op.Ge, mp.claim.LiteralExpr(0)
