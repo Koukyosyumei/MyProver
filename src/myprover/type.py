@@ -196,6 +196,10 @@ def resolve_stmt_type(sigma, stmt):
         actual, isupdated_1 = resolve_expr_type(sigma, stmt.e)
         _, isupdated_2 = check_and_update_sigma(stmt.e, actual, TypeBOOL, sigma)
         return isupdated_1 or isupdated_2
+    elif isinstance(stmt, AssumeStmt):
+        actual, isupdated_1 = resolve_expr_type(sigma, stmt.e)
+        _, isupdated_2 = check_and_update_sigma(stmt.e, actual, TypeBOOL, sigma)
+        return isupdated_1 or isupdated_2
     elif isinstance(stmt, WhileStmt):
         actual, isupdated = resolve_expr_type(sigma, stmt.cond)
         _, tmp_isupdated = check_and_update_sigma(stmt.cond, actual, TypeBOOL, sigma)

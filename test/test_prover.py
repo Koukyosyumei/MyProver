@@ -120,14 +120,12 @@ def test_verify_func_with_assert_stmt(prover):
     postcond = "x >= 0"
     assert prover.verify_func(assert_func, precond, postcond)
 
-"""
+def assume_func(x):
+    assume("x > 0")
+    return x
+
 def test_verify_func_with_assume_stmt(prover):
-    def assume_func(x):
-        assume x > 0
-        return x
-    
     prover.fname2var_types['assume_func'] = {'x': mp.type.TypeINT}
     precond = "True"
-    postcond = "result == x"
+    postcond = "x >= 1"
     assert prover.verify_func(assume_func, precond, postcond)
-"""
