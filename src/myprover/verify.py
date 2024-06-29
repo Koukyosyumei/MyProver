@@ -1,16 +1,16 @@
 import ast
 import inspect
+
 import z3
 
+from .claim import BinOpExpr, Op, UnOpExpr
 from .hoare import weakest_precondition
-from .type import TypeBOOL, TypeINT
 from .parser import Parser
-from .visitor import PyToClaim, ClaimToZ3
-from .type import type_infer_stmt, type_infer_expr
-from .claim import BinOpExpr, Op, UnOpExpr, Op
+from .type import TypeBOOL, TypeINT, type_infer_expr, type_infer_stmt
+from .visitor import ClaimToZ3, PyToClaim
 
 
-class Claimer:
+class Verifier:
     def __init__(self):
         self.fname2var_types = {}
 

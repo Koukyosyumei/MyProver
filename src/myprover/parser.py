@@ -1,15 +1,16 @@
 import re
+
 from .claim import (
-    QuantificationExpr,
     BinOpExpr,
-    Op,
-    UnOpExpr,
     LiteralExpr,
-    VInt,
-    VBool,
-    VarExpr,
+    Op,
+    QuantificationExpr,
     SliceExpr,
     SubscriptExpr,
+    UnOpExpr,
+    VarExpr,
+    VBool,
+    VInt,
 )
 
 """

@@ -1,7 +1,9 @@
 import ast
-import sys
 import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
+import sys
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
+
 
 def test_py2claim():
     import myprover as mp
@@ -33,9 +35,15 @@ def test_py2claim():
     source = "x = y[1:]\nx = y[:1]\nx = y[1:3]"
     py_tree = ast.parse(source)
     mp_tree = mp.PyToClaim().visit(py_tree)
-    assert str(mp_tree) == "(Seq (Seq (Assign x (Subscript (Var y) (Slice (Literal VInt 1) -> None))) (Assign x (Subscript (Var y) (Slice (Literal VInt 0) -> (Literal VInt 1))))) (Assign x (Subscript (Var y) (Slice (Literal VInt 1) -> (Literal VInt 3)))))"
+    assert (
+        str(mp_tree)
+        == "(Seq (Seq (Assign x (Subscript (Var y) (Slice (Literal VInt 1) -> None))) (Assign x (Subscript (Var y) (Slice (Literal VInt 0) -> (Literal VInt 1))))) (Assign x (Subscript (Var y) (Slice (Literal VInt 1) -> (Literal VInt 3)))))"
+    )
 
     source = "def f(n):\n    while x > 0:\n        x = x - 1"
     py_tree = ast.parse(source)
     mp_tree = mp.PyToClaim().visit(py_tree)
-    assert str(mp_tree) == "(Seq (Seq (Seq (Assert (Literal VBool True)) (Havoc x)) (Assume (Literal VBool True))) (If (BinOp (Var x) Op.Gt (Literal VInt 0)) (Seq (Seq (Seq (Assign x (BinOp (Var x) Op.Minus (Literal VInt 1))) (Skip)) (Assert (Literal VBool True))) (Assume (Literal VBool False))) (Skip)))"
+    assert (
+        str(mp_tree)
+        == "(Seq (Seq (Seq (Assert (Literal VBool True)) (Havoc x)) (Assume (Literal VBool True))) (If (BinOp (Var x) Op.Gt (Literal VInt 0)) (Seq (Seq (Seq (Assign x (BinOp (Var x) Op.Minus (Literal VInt 1))) (Skip)) (Assert (Literal VBool True))) (Assume (Literal VBool False))) (Skip)))"
+    )

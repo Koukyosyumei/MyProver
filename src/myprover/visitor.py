@@ -3,29 +3,27 @@ from functools import reduce
 
 import z3
 
-from .stmt import (
+from .claim import (
+    AssertStmt,
+    AssignStmt,
+    AssumeStmt,
+    BinOpExpr,
     HavocStmt,
     IfStmt,
+    LiteralExpr,
+    Op,
+    QuantificationExpr,
     SeqStmt,
-    AssumeStmt,
-    AssertStmt,
     SkipStmt,
-    AssignStmt,
-)
-from .parser import (
+    SliceExpr,
+    SubscriptExpr,
     UnOpExpr,
     VarExpr,
-    SubscriptExpr,
-    Parser,
-    LiteralExpr,
-    VInt,
     VBool,
-    BinOpExpr,
-    SliceExpr,
-    QuantificationExpr,
-    Op,
+    VInt,
 )
-from .type import TypeINT, TypeBOOL
+from .parser import Parser
+from .type import TypeBOOL, TypeINT
 
 
 def is_invariant(y):
