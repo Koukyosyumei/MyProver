@@ -243,7 +243,7 @@ class ClaimToZ3:
             raise NotImplementedError(f"`{type(expr)} is not supported")
 
     def visit_Literal(self, node):
-        node.value.v
+        return node.value.v
 
     def visit_Var(self, node):
         return self.name_dict[node.name]
@@ -287,7 +287,7 @@ class ClaimToZ3:
 
     def visit_Unop(self, node):
         c = self.visit(node.e)
-        if node.op == Op.NEq:
+        if node.op == Op.Minus:
             return -c
         elif node.op == Op.Not:
             return z3.Not(c)
@@ -295,9 +295,11 @@ class ClaimToZ3:
             raise NotImplementedError(f"{node.op} is not supported")
 
     def visit_Quantification(self, node):
-        if isinstance(node.var_type, TypeINT):
-            self.name_dict[node.var.name] = z3.Int(node.var.name)
-        elif isinstance(node.var_type, TypeBOOL):
-            self.name_dict[node.var.name] = z3.Bool(node.var.name)
+        if node.var_type == TypeINT:
+            z3_var = z3.Int(node.var.name)
+        elif node.var_type == TypeBOOL:
+            z3_var = z3.Bool(node.var.name)
         else:
             raise NotImplementedError(f"{node.var_type} is not supported")
+        self.name_dict[node.var.name] = z3_var
+        return z3.ForAll(z3_var, self.visit(node.expr))
