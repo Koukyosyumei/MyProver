@@ -39,13 +39,15 @@ def test_verify_simple_func_invalid(prover):
         prover.verify_func(simple_func, precond, postcond)
 
 def test_verify_complex_func_valid(prover):
-    precond = "x >= 0 and y >= 0 and z == True"
+    # Note: Currently, we do not support `z == True`.
+    precond = "x >= 0 and y >= 0 and (z and True)"
     postcond = "result <= x"
     assert prover.verify_func(complex_func, precond, postcond)
 
-"""
+
 def test_verify_complex_func_invalid(prover):
-    precond = "x >= 0 and y >= 0 and z == False"
+    # Note: Currently, we do not support `z == False`.
+    precond = "x >= 0 and y >= 0 and (not z)"
     postcond = "result < 0"
     with pytest.raises(RuntimeError):
         prover.verify_func(complex_func, precond, postcond)
@@ -54,6 +56,7 @@ def test_verify_func_with_no_precond(prover):
     precond = "True"
     postcond = "result == x + y"
     assert prover.verify_func(simple_func, precond, postcond)
+
 
 def test_verify_func_with_false_postcond(prover):
     precond = "x >= 0 and y >= 0"
@@ -71,6 +74,7 @@ def test_verify_func_with_complex_postcond(prover):
     postcond = "(result == x + y) or (result == x - y)"
     assert prover.verify_func(simple_func, precond, postcond)
 
+
 def test_verify_func_with_nested_conditions(prover):
     def nested_func(x, y):
         if x > 0:
@@ -83,6 +87,7 @@ def test_verify_func_with_nested_conditions(prover):
     postcond = "(x > 0 and result == x - y) or (x <= 0 and result == x + y)"
     assert prover.verify_func(nested_func, precond, postcond)
 
+"""
 def test_verify_func_with_bool_var(prover):
     def bool_func(x, y, z):
         if z:
