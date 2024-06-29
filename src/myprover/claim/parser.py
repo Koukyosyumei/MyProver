@@ -1,17 +1,16 @@
 import re
 
-from .claim import (
+from .expr import (
     BinOpExpr,
     LiteralExpr,
-    Op,
     QuantificationExpr,
     SliceExpr,
     SubscriptExpr,
     UnOpExpr,
     VarExpr,
-    VBool,
-    VInt,
 )
+from .op import Op
+from .value import VBool, VInt
 
 """
 expr           = quantification || logocal

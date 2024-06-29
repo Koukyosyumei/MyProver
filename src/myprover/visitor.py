@@ -12,6 +12,7 @@ from .claim import (
     IfStmt,
     LiteralExpr,
     Op,
+    Parser,
     QuantificationExpr,
     SeqStmt,
     SkipStmt,
@@ -22,7 +23,6 @@ from .claim import (
     VBool,
     VInt,
 )
-from .parser import Parser
 from .type import TypeBOOL, TypeINT
 
 

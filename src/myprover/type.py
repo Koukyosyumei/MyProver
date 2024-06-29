@@ -9,6 +9,7 @@ from .claim import (
     IfStmt,
     LiteralExpr,
     Op,
+    Parser,
     QuantificationExpr,
     SeqStmt,
     SkipStmt,
@@ -20,7 +21,6 @@ from .claim import (
     VInt,
     WhileStmt,
 )
-from .parser import Parser
 
 
 class Type(metaclass=ABCMeta):

@@ -10,6 +10,7 @@ from .expr import (  # noqa : F401
     VarExpr,
 )
 from .op import Op  # noqa : F401
+from .parser import Parser  # noqa : F401
 from .stmt import (  # noqa : F401
     AssertStmt,
     AssignStmt,

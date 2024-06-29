@@ -3,9 +3,8 @@ import inspect
 
 import z3
 
-from .claim import BinOpExpr, Op, UnOpExpr
+from .claim import BinOpExpr, Op, Parser, UnOpExpr
 from .hoare import weakest_precondition
-from .parser import Parser
 from .type import TypeBOOL, TypeINT, type_infer_expr, type_infer_stmt
 from .visitor import ClaimToZ3, PyToClaim
 
