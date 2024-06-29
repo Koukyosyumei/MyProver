@@ -31,7 +31,7 @@ def test_verify_simple_func_valid(prover):
     postcond = "result >= 0"
     assert prover.verify_func(simple_func, precond, postcond)
 
-"""
+
 def test_verify_simple_func_invalid(prover):
     precond = "x >= 0 and y >= 0"
     postcond = "result < 0"
@@ -43,6 +43,7 @@ def test_verify_complex_func_valid(prover):
     postcond = "result <= x"
     assert prover.verify_func(complex_func, precond, postcond)
 
+"""
 def test_verify_complex_func_invalid(prover):
     precond = "x >= 0 and y >= 0 and z == False"
     postcond = "result < 0"

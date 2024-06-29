@@ -45,7 +45,7 @@ class MyProver:
             z3_cond = converter.visit(UnOpExpr(Op.Not, cond))
             solver.add(z3_cond)
             result = solver.check()
-            if str(result) == "str":
+            if str(result) == "sat":
                 model = solver.model()
                 raise RuntimeError(f"Found a violoated condition: {cond} - {model}")
             solver.pop()

@@ -268,6 +268,8 @@ class ClaimParser:
                 value = token.group(0)
                 return LiteralExpr(VInt(int(value)))
             elif self.consume("BOOL"):
+                token = self.current_token()
+                value = token.group(0)
                 return LiteralExpr(VBool(value == "True"))
             elif self.consume("VAR"):
                 token = self.current_token()
