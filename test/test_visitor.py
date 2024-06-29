@@ -45,11 +45,10 @@ def test_py2claim():
     source = "def f(n):\n    while x > 0:\n        x = x - 1"
     py_tree = ast.parse(source)
     mp_tree = mp.PyToClaim().visit(py_tree)
-    assert False
-    #assert (
-    #    str(mp_tree)
-    #    == "(Seq (Seq (Seq (Seq (Assert (Literal VBool True)) (Havoc x)) (Havoc (Var x))) (Assume (Literal VBool True))) (If (BinOp (Var x) Op.Gt (Literal VInt 0)) (Seq (Seq (Seq (Assign (Var x) (BinOp (Var x) Op.Minus (Literal VInt 1))) (Skip)) (Assert (Literal VBool True))) (Assume (Literal VBool False))) (Skip)))"
-    #)
+    assert (
+        str(mp_tree)
+        == "(Seq (Seq (Seq (Assert (Literal VBool True)) (Havoc x)) (Assume (Literal VBool True))) (If (BinOp (Var x) Op.Gt (Literal VInt 0)) (Seq (Seq (Seq (Assign (Var x) (BinOp (Var x) Op.Minus (Literal VInt 1))) (Skip)) (Assert (Literal VBool True))) (Assume (Literal VBool False))) (Skip)))"
+    )
 
 
 @pytest.fixture

@@ -176,9 +176,8 @@ class PyToClaim(ast.NodeVisitor):
                 )
             )
         )
-        loop_targets = body.collect_variables()
-        havocs = list(map(HavocStmt, loop_targets))
-        print("havocs -- ", havocs)
+        loop_target_varnames = body.collect_varnames()
+        havocs = list(map(HavocStmt, loop_target_varnames))
         invariants = (
             LiteralExpr(VBool(True))
             if not invars

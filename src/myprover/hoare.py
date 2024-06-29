@@ -91,11 +91,11 @@ def derive_weakest_precondition(command_stmt: Stmt, post_condition: Expr, var2ty
         return (
             QuantificationExpr(
                 "FORALL",
-                VarExpr(command_stmt.var.name + "$0"),
+                VarExpr(command_stmt.var_name + "$0"),
                 post_condition.assign_variable(
-                    command_stmt.var, VarExpr(command_stmt.var.name + "$0")
+                    command_stmt.var_name, VarExpr(command_stmt.var_name + "$0")
                 ),
-                var2type[command_stmt.var],
+                var2type[command_stmt.var_name],
             ),
             set(),
         )

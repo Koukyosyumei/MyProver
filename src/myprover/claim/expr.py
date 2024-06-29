@@ -6,7 +6,7 @@ from .value import Value, VInt
 
 class Expr(metaclass=ABCMeta):
     @abstractmethod
-    def collect_variables(self):
+    def collect_varnames(self):
         pass
 
     @abstractmethod
@@ -21,7 +21,7 @@ class VarExpr(Expr):
     def __repr__(self):
         return f"(Var {self.name})"
 
-    def collect_variables(self):
+    def collect_varnames(self):
         return {self.name}
 
     def assign_variable(self, old_var, new_var):
@@ -39,11 +39,11 @@ class SliceExpr(Expr):
     def __repr__(self):
         return f"(Slice {self.lower} -> {self.upper})"
 
+    def collect_varnames(self):
+        return {}
+
     def assign_variable(self, old_var, new_var):
         return self
-
-    def collect_variables(self, old_var, new_var):
-        return {}
 
 
 class SubscriptExpr(Expr):
@@ -54,8 +54,8 @@ class SubscriptExpr(Expr):
     def __repr__(self):
         return f"(Subscript {self.var} {self.subscript})"
 
-    def collect_variables(self):
-        return self.var.collect_variables().union(self.subscript.collect_variables())
+    def collect_varnames(self):
+        return self.var.collect_varnames().union(self.subscript.collect_varnames())
 
     def assign_variable(self, old_var, new_var):
         return self
@@ -68,7 +68,7 @@ class LiteralExpr(Expr):
     def __repr__(self):
         return f"(Literal {self.value})"
 
-    def collect_variables(self):
+    def collect_varnames(self):
         return set()
 
     def assign_variable(self, old_var, new_var):
@@ -83,8 +83,8 @@ class UnOpExpr(Expr):
     def __repr__(self):
         return f"(UnOp {self.op} {self.e})"
 
-    def collect_variables(self):
-        return {*self.e.collect_variables()}
+    def collect_varnames(self):
+        return {*self.e.collect_varnames()}
 
     def assign_variable(self, old_var, new_var):
         return UnOpExpr(self.op, self.e.assign_variable(old_var, new_var))
@@ -99,8 +99,8 @@ class BinOpExpr(Expr):
     def __repr__(self):
         return f"(BinOp {self.e1} {self.op} {self.e2})"
 
-    def collect_variables(self):
-        return {*self.e1.collect_variables(), *self.e2.collect_variables()}
+    def collect_varnames(self):
+        return {*self.e1.collect_varnames(), *self.e2.collect_varnames()}
 
     def assign_variable(self, old_var, new_var):
         return BinOpExpr(
@@ -138,6 +138,9 @@ class QuantificationExpr(Expr):
 
     def __repr__(self):
         return f"(forall  {self.var}:{self.var_type}. {self.expr})"
+    
+    def collect_varnames(self):
+        return {}
 
     def assign_variable(self, old_var, new_var):
         return QuantificationExpr(
@@ -147,6 +150,3 @@ class QuantificationExpr(Expr):
             self.var_type,
             self.bounded,
         )
-
-    def collect_variables(self, old_var, new_var):
-        return {}

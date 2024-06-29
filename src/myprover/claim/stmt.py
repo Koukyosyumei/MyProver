@@ -5,7 +5,7 @@ from .expr import Expr
 
 class Stmt(metaclass=ABCMeta):
     @abstractmethod
-    def collect_variables(self):
+    def collect_varnames(self):
         pass
 
 
@@ -13,7 +13,7 @@ class SkipStmt(Stmt):
     def __repr__(self):
         return f"(Skip)"
 
-    def collect_variables(self):
+    def collect_varnames(self):
         return set()
 
 
@@ -25,8 +25,8 @@ class AssignStmt(Stmt):
     def __repr__(self):
         return f"(Assign {self.var} {self.expr})"
 
-    def collect_variables(self):
-        return {self.var, *self.expr.collect_variables()}
+    def collect_varnames(self):
+        return {self.var.name, *self.expr.collect_varnames()}
 
 
 class IfStmt(Stmt):
@@ -38,11 +38,11 @@ class IfStmt(Stmt):
     def __repr__(self):
         return f"(If {self.cond} {self.lb} {self.rb})"
 
-    def collect_variables(self):
+    def collect_varnames(self):
         return {
-            *self.cond.collect_variables(),
-            *self.lb.collect_variables(),
-            *self.rb.collect_variables(),
+            *self.cond.collect_varnames(),
+            *self.lb.collect_varnames(),
+            *self.rb.collect_varnames(),
         }
 
 
@@ -54,8 +54,8 @@ class SeqStmt(Stmt):
     def __repr__(self):
         return f"(Seq {self.s1} {self.s2})"
 
-    def collect_variables(self):
-        return {*self.s1.collect_variables(), *self.s2.collect_variables()}
+    def collect_varnames(self):
+        return {*self.s1.collect_varnames(), *self.s2.collect_varnames()}
 
 
 class AssumeStmt(Stmt):
@@ -65,8 +65,8 @@ class AssumeStmt(Stmt):
     def __repr__(self):
         return f"(Assume {self.e})"
 
-    def collect_variables(self):
-        return {*self.e.collect_variables()}
+    def collect_varnames(self):
+        return {*self.e.collect_varnames()}
 
 
 class AssertStmt(Stmt):
@@ -76,8 +76,8 @@ class AssertStmt(Stmt):
     def __repr__(self):
         return f"(Assert {self.e})"
 
-    def collect_variables(self):
-        return {*self.e.collect_variables()}
+    def collect_varnames(self):
+        return {*self.e.collect_varnames()}
 
 
 class WhileStmt(Stmt):
@@ -89,16 +89,16 @@ class WhileStmt(Stmt):
     def __repr__(self):
         return f"(While {self.cond} {self.body})"
 
-    def collect_variables(self):
-        return {*self.body.collect_variables()}
+    def collect_varnames(self):
+        return {*self.body.collect_varnames()}
 
 
 class HavocStmt(Stmt):
-    def __init__(self, var):
-        self.var = var
+    def __init__(self, var_name: str):
+        self.var_name = var_name
 
     def __repr__(self):
-        return f"(Havoc {self.var})"
+        return f"(Havoc {self.var_name})"
 
-    def collect_variables(self):
+    def collect_varnames(self):
         return set()
