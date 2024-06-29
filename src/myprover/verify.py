@@ -10,16 +10,15 @@ from .type import type_infer_stmt, type_infer_expr
 from .claim import BinOpExpr, Op, UnOpExpr, Op
 
 
-class Claimer():
+class Claimer:
     def __init__(self):
         self.fname2var_types = {}
-
 
     def verify_func(self, func, precond_str, postcond_str):
         code = inspect.getsource(func)
         py_ast = ast.parse(code)
         claim_ast = PyToClaim().visit(py_ast)
-        
+
         precond_expr = Parser(precond_str).parse_expr()
         postcond_expr = Parser(postcond_str).parse_expr()
 
@@ -36,7 +35,7 @@ class Claimer():
                 z3_sigma[n] = z3.Int(n)
             elif isinstance(t, TypeBOOL):
                 z3_sigma[n] = z3.Bool(n)
-            
+
         solver = z3.solver()
         converter = ClaimToZ3(z3_sigma)
 
@@ -49,4 +48,3 @@ class Claimer():
                 model = solver.model()
                 raise RuntimeError(f"Found a violoated condition: {cond} - {model}")
             solver.pop()
-

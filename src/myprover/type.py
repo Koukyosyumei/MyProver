@@ -8,7 +8,7 @@ from .stmt import (
     AssertStmt,
     SkipStmt,
     AssignStmt,
-    WhileStmt
+    WhileStmt,
 )
 from .parser import (
     UnOpExpr,
@@ -132,7 +132,7 @@ def type_infer_expr(sigma, expr):
 
     else:
         raise NotImplementedError(f"{type(expr)} is not suported")
-    
+
 
 def type_infer_stmt(sigma, stmt):
     if isinstance(stmt, SkipStmt):

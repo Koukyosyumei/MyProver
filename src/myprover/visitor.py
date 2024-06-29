@@ -150,6 +150,9 @@ class PyToClaim(ast.NodeVisitor):
     def visit_Constant(self, node):
         return LiteralExpr(VInt(node.value))
 
+    def visit_FunctionDef(self, node):
+        return self.walk_seq(node.body)
+
     def visit_Module(self, node):
         return self.walk_seq(node.body)
 
@@ -221,8 +224,8 @@ class PyToClaim(ast.NodeVisitor):
 
     def visit_Expr(self, node):
         return self.visit(node.value)
-    
-    
+
+
 class ClaimToZ3:
     def __init__(self, name_dict):
         self.name_dict = name_dict
@@ -246,7 +249,7 @@ class ClaimToZ3:
 
     def visit_Var(self, node):
         return self.name_dict[node.name]
-    
+
     def visit_BinOp(self, node):
         c1 = self.visit(node.e1)
         c2 = self.visit(node.e2)
@@ -270,7 +273,7 @@ class ClaimToZ3:
         elif node.op == Op.Iff:
             return z3.And(z3.Implies(c1, c2), z3.Implies(c2, c1))
         elif node.op == Op.Eq:
-            return c1 == c2 
+            return c1 == c2
         elif node.op == Op.NEq:
             return z3.Not(c1 == c2)
         elif node.op == Op.Gt:
@@ -280,10 +283,10 @@ class ClaimToZ3:
         elif node.op == Op.Lt:
             return c1 < c2
         elif node.op == Op.Le:
-            return c1 <= c2 
+            return c1 <= c2
         else:
             raise NotImplementedError(f"{node.op} is not supported")
-        
+
     def visit_Unop(self, node):
         c = self.visit(node.e)
         if node.op == Op.NEq:
@@ -292,7 +295,7 @@ class ClaimToZ3:
             return z3.Not(c)
         else:
             raise NotImplementedError(f"{node.op} is not supported")
-        
+
     def visit_Quantification(self, node):
         if isinstance(node.var_type, TypeINT):
             self.name_dict[node.var.name] = z3.Int(node.var.name)
