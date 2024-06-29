@@ -10,7 +10,7 @@ class Expr(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def substitute(self, old_var, new_var):
+    def assign_variable(self, old_var, new_var):
         pass
 
 
@@ -24,7 +24,7 @@ class VarExpr(Expr):
     def collect_variables(self):
         return {self.name}
 
-    def substitute(self, old_var, new_var):
+    def assign_variable(self, old_var, new_var):
         if self.name == old_var.name:
             return new_var
         else:
@@ -39,7 +39,7 @@ class SliceExpr(Expr):
     def __repr__(self):
         return f"(Slice {self.lower} -> {self.upper})"
 
-    def substitute(self, old_var, new_var):
+    def assign_variable(self, old_var, new_var):
         return self
 
     def collect_variables(self, old_var, new_var):
@@ -57,7 +57,7 @@ class SubscriptExpr(Expr):
     def collect_variables(self):
         return self.var.collect_variables().union(self.subscript.collect_variables())
 
-    def substitute(self, old_var, new_var):
+    def assign_variable(self, old_var, new_var):
         return self
 
 
@@ -71,7 +71,7 @@ class LiteralExpr(Expr):
     def collect_variables(self):
         return set()
 
-    def substitute(self, old_var, new_var):
+    def assign_variable(self, old_var, new_var):
         return self
 
 
@@ -86,8 +86,8 @@ class UnOpExpr(Expr):
     def collect_variables(self):
         return {*self.e.collect_variables()}
 
-    def substitute(self, old_var, new_var):
-        return UnOpExpr(self.op, self.e.substitute(old_var, new_var))
+    def assign_variable(self, old_var, new_var):
+        return UnOpExpr(self.op, self.e.assign_variable(old_var, new_var))
 
 
 class BinOpExpr(Expr):
@@ -102,11 +102,11 @@ class BinOpExpr(Expr):
     def collect_variables(self):
         return {*self.e1.collect_variables(), *self.e2.collect_variables()}
 
-    def substitute(self, old_var, new_var):
+    def assign_variable(self, old_var, new_var):
         return BinOpExpr(
-            self.e1.substitute(old_var, new_var),
+            self.e1.assign_variable(old_var, new_var),
             self.op,
-            self.e2.substitute(old_var, new_var),
+            self.e2.assign_variable(old_var, new_var),
         )
 
 
@@ -123,7 +123,7 @@ class QuantificationExpr(Expr):
             return
 
         bounded_var = VarExpr(self.var.name + "$$0")
-        e = self.expr.substitute(self.var, bounded_var)
+        e = self.expr.assign_variable(self.var, bounded_var)
 
         if self.quantifier == "EXISTS":
             # exists x. Q <==> not forall x. not Q
@@ -139,11 +139,11 @@ class QuantificationExpr(Expr):
     def __repr__(self):
         return f"(forall  {self.var}:{self.var_type}. {self.expr})"
 
-    def substitute(self, old_var, new_var):
+    def assign_variable(self, old_var, new_var):
         return QuantificationExpr(
             self.quantifier,
             self.var,
-            self.expr.substitute(old_var, new_var),
+            self.expr.assign_variable(old_var, new_var),
             self.var_type,
             self.bounded,
         )

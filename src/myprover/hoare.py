@@ -25,18 +25,21 @@ def weakest_precondition(command_stmt: Stmt, post_condition: Expr, var2type):
 
     {P} C {Q} <=> P => wp(C, Q)
     """
-    if type(command_stmt) == SkipStmt:
+    if isinstance(command_stmt, SkipStmt):
         # wp(skip, Q <=> Q
         return post_condition, set()
-    elif type(command_stmt) == AssignStmt:
+    elif isinstance(command_stmt, AssignStmt):
         # wp(x:=t, Q) = Q[t/x]
-        return post_condition.substitute(command_stmt.var, command_stmt.expr), set()
-    elif type(command_stmt) == SeqStmt:
+        return (
+            post_condition.assign_variable(command_stmt.var, command_stmt.expr),
+            set(),
+        )
+    elif isinstance(command_stmt, SeqStmt):
         # wp(C1;C2, Q) <=> wp(C1, wp(C2, Q))
         wp2, ac2 = weakest_precondition(command_stmt.s2, post_condition, var2type)
         wp1, ac1 = weakest_precondition(command_stmt.s1, wp2, var2type)
         return (wp1, ac1.union(ac2))
-    elif type(command_stmt) == IfStmt:
+    elif isinstance(command_stmt, IfStmt):
         # wp(if A then B else C, Q) <=> (A => wp(B, Q)) ^ (!A => wp(C, Q))
         wp1, ac1 = weakest_precondition(command_stmt.lb, post_condition, var2type)
         wp2, ac2 = weakest_precondition(command_stmt.rb, post_condition, var2type)
@@ -46,7 +49,7 @@ def weakest_precondition(command_stmt: Stmt, post_condition: Expr, var2type):
             BinOpExpr(UnOpExpr(Op.Not, command_stmt.cond), Op.Implies, wp2),
         )
         return cond, ac1.union(ac2)
-    elif type(command_stmt) == WhileStmt:
+    elif isinstance(command_stmt, WhileStmt):
         if command_stmt is None:
             invariant = LiteralExpr(VBool(True))
         else:
@@ -64,19 +67,19 @@ def weakest_precondition(command_stmt: Stmt, post_condition: Expr, var2type):
                 ),
             }
         )
-    elif type(command_stmt) == HavocStmt:
+    elif isinstance(command_stmt, HavocStmt):
         return (
             QuantificationExpr(
                 "FORALL",
                 VarExpr(command_stmt.var.name + "$0"),
-                post_condition.substitute(
+                post_condition.assign_variable(
                     command_stmt.var, VarExpr(command_stmt.var.name + "$0")
                 ),
                 var2type[command_stmt.var],
             ),
             set(),
         )
-    elif type(command_stmt) == AssumeStmt:
+    elif isinstance(command_stmt, AssumeStmt):
         return BinOpExpr(command_stmt.e, Op.Implies, post_condition), set()
-    elif type(command_stmt) == AssertStmt:
+    elif isinstance(command_stmt, AssertStmt):
         return BinOpExpr(post_condition, command_stmt.e, Op.Implies), set()
