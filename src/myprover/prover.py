@@ -3,18 +3,49 @@ import inspect
 
 import z3
 
-from .claim import BinOpExpr, Op, ClaimParser, UnOpExpr
+from .claim import BinOpExpr, ClaimParser, Op, UnOpExpr
 from .hoare import derive_weakest_precondition
-from .type import TypeBOOL, TypeINT, resolve_expr_type, resolve_stmt_type, check_and_update_varname2type
+from .type import (
+    TypeBOOL,
+    TypeINT,
+    check_and_update_varname2type,
+    resolve_expr_type,
+    resolve_stmt_type,
+)
 from .visitor import ClaimToZ3, PyToClaim
 
 
 class MyProver:
+    """
+    A class used to verify the correctness of functions based on preconditions and postconditions.
+
+    Attributes:
+        fname2var_types (dict): A dictionary mapping function names to variable types.
+    """
+
     def __init__(self):
+        """
+        Initializes the MyProver instance with an empty dictionary for function name to variable types mapping.
+        """
         self.fname2var_types = {}
 
     def verify_func(self, func, precond_str, postcond_str):
+        """
+        Verifies the correctness of a function based on the given precondition and postcondition strings.
+
+        Args:
+            func (function): The function to verify.
+            precond_str (str): The precondition string.
+            postcond_str (str): The postcondition string.
+
+        Returns:
+            bool: True if the function satisfies the precondition and postcondition; otherwise, raises an error.
+
+        Raises:
+            RuntimeError: If a violated condition is found during verification.
+        """
         code = inspect.getsource(func)
+        code = code.lstrip()
         py_ast = ast.parse(code)
         claim_ast = PyToClaim().visit(py_ast)
 
@@ -23,11 +54,19 @@ class MyProver:
 
         resolve_stmt_type(self.fname2var_types[func.__name__], claim_ast)
         actual, _ = resolve_expr_type(self.fname2var_types[func.__name__], precond_expr)
-        check_and_update_varname2type(precond_expr, actual, TypeBOOL, self.fname2var_types[func.__name__])
-        actual, _ = resolve_expr_type(self.fname2var_types[func.__name__], postcond_expr)
-        check_and_update_varname2type(postcond_expr, actual, TypeBOOL, self.fname2var_types[func.__name__])
+        check_and_update_varname2type(
+            precond_expr, actual, TypeBOOL, self.fname2var_types[func.__name__]
+        )
+        actual, _ = resolve_expr_type(
+            self.fname2var_types[func.__name__], postcond_expr
+        )
+        check_and_update_varname2type(
+            postcond_expr, actual, TypeBOOL, self.fname2var_types[func.__name__]
+        )
 
-        wp, ac = derive_weakest_precondition(claim_ast, postcond_expr, self.fname2var_types[func.__name__])
+        wp, ac = derive_weakest_precondition(
+            claim_ast, postcond_expr, self.fname2var_types[func.__name__]
+        )
         conditions_to_be_proved = [BinOpExpr(precond_expr, Op.Implies, wp)] + list(ac)
 
         z3_env_varname2type = {}

@@ -40,6 +40,7 @@ class VarExpr(Expr):
     Args:
         name (str): The name of the variable.
     """
+
     def __init__(self, name: str):
         self.name = name
 
@@ -298,7 +299,7 @@ class QuantificationExpr(Expr):
 
     def __repr__(self):
         return f"(forall  {self.var}:{self.var_type}. {self.expr})"
-    
+
     def collect_varnames(self):
         """Collect variable names in the quantification expression.
 

@@ -2,10 +2,11 @@ import ast
 import os
 import sys
 
-import z3
 import pytest
+import z3
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
+
 
 def test_py2claim():
     import myprover as mp
@@ -53,7 +54,8 @@ def test_py2claim():
 
 @pytest.fixture
 def name_dict():
-    return {'x': z3.Int('x'), 'y': z3.Int('y'), 'z': z3.Bool('z')}
+    return {"x": z3.Int("x"), "y": z3.Int("y"), "z": z3.Bool("z")}
+
 
 @pytest.fixture
 def claim_to_z3(name_dict):
@@ -71,50 +73,62 @@ def test_claim2z3_simple(claim_to_z3, name_dict):
     expr = mp.claim.LiteralExpr(mp.claim.BoolValue(True))
     assert claim_to_z3.visit(expr) == True
 
-    expr = mp.claim.VarExpr('x')
-    assert claim_to_z3.visit(expr) == name_dict['x']
+    expr = mp.claim.VarExpr("x")
+    assert claim_to_z3.visit(expr) == name_dict["x"]
+
 
 def test_claim2z3_operations(claim_to_z3, name_dict):
     import myprover as mp
 
-    expr = mp.claim.BinOpExpr(mp.claim.VarExpr('x'), mp.claim.Op.Add, mp.claim.VarExpr('y'))
+    expr = mp.claim.BinOpExpr(
+        mp.claim.VarExpr("x"), mp.claim.Op.Add, mp.claim.VarExpr("y")
+    )
     result = claim_to_z3.visit(expr)
-    assert result == name_dict['x'] + name_dict['y']
+    assert result == name_dict["x"] + name_dict["y"]
 
-    expr = mp.claim.BinOpExpr(mp.claim.VarExpr('z'), mp.claim.Op.And, mp.claim.LiteralExpr(mp.claim.BoolValue(True)))
+    expr = mp.claim.BinOpExpr(
+        mp.claim.VarExpr("z"),
+        mp.claim.Op.And,
+        mp.claim.LiteralExpr(mp.claim.BoolValue(True)),
+    )
     result = claim_to_z3.visit(expr)
-    assert result == z3.And(name_dict['z'], True)
+    assert result == z3.And(name_dict["z"], True)
 
-    expr = mp.claim.UnOpExpr(mp.claim.Op.Not, mp.claim.VarExpr('z'))
+    expr = mp.claim.UnOpExpr(mp.claim.Op.Not, mp.claim.VarExpr("z"))
     result = claim_to_z3.visit(expr)
-    assert result == z3.Not(name_dict['z'])
+    assert result == z3.Not(name_dict["z"])
 
-    expr = mp.claim.BinOpExpr(mp.claim.VarExpr('x'), mp.claim.Op.Eq, mp.claim.LiteralExpr(mp.claim.IntValue(5)))
+    expr = mp.claim.BinOpExpr(
+        mp.claim.VarExpr("x"),
+        mp.claim.Op.Eq,
+        mp.claim.LiteralExpr(mp.claim.IntValue(5)),
+    )
     result = claim_to_z3.visit(expr)
-    assert result == (name_dict['x'] == 5)
+    assert result == (name_dict["x"] == 5)
 
-    expr = mp.claim.UnOpExpr(mp.claim.Op.Minus, mp.claim.VarExpr('x'))
+    expr = mp.claim.UnOpExpr(mp.claim.Op.Minus, mp.claim.VarExpr("x"))
     result = claim_to_z3.visit(expr)
-    assert result == -name_dict['x']
+    assert result == -name_dict["x"]
+
 
 def test_claim2z3_quantification(claim_to_z3, name_dict):
     import myprover as mp
 
     expr = mp.claim.QuantificationExpr(
         "FORALL",
-        mp.claim.VarExpr('x'), 
-        mp.claim.LiteralExpr(mp.claim.IntValue(5)), 
-        mp.type.TypeINT
+        mp.claim.VarExpr("x"),
+        mp.claim.LiteralExpr(mp.claim.IntValue(5)),
+        mp.type.TypeINT,
     )
     result = claim_to_z3.visit(expr)
     assert result == z3.ForAll(name_dict["x"], True)
-    assert isinstance(name_dict['x'], z3.ArithRef)
+    assert isinstance(name_dict["x"], z3.ArithRef)
 
     expr = mp.claim.QuantificationExpr(
         "FORALL",
-        mp.claim.VarExpr('z'), 
-        mp.claim.LiteralExpr(mp.claim.BoolValue(True)), 
-        mp.type.TypeBOOL
+        mp.claim.VarExpr("z"),
+        mp.claim.LiteralExpr(mp.claim.BoolValue(True)),
+        mp.type.TypeBOOL,
     )
     claim_to_z3.visit(expr)
-    assert isinstance(name_dict['z'], z3.BoolRef)
+    assert isinstance(name_dict["z"], z3.BoolRef)

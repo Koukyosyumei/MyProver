@@ -38,7 +38,7 @@ class BoolValue(GeneralValue):
     Args:
         v: The boolean value to be stored.
     """
-    
+
     def __init__(self, v):
         super().__init__(v == "True" or v == True)
 

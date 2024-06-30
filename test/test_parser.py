@@ -80,11 +80,17 @@ def test_parser_subscript():
 
     p = mp.ClaimParser("x[:10]")
     e = p.parse_expr()
-    assert str(e) == "(Subscript (Var x) (Slice (Literal IntValue 0) -> (Literal IntValue 10)))"
+    assert (
+        str(e)
+        == "(Subscript (Var x) (Slice (Literal IntValue 0) -> (Literal IntValue 10)))"
+    )
 
     p = mp.ClaimParser("x[3:10]")
     e = p.parse_expr()
-    assert str(e) == "(Subscript (Var x) (Slice (Literal IntValue 3) -> (Literal IntValue 10)))"
+    assert (
+        str(e)
+        == "(Subscript (Var x) (Slice (Literal IntValue 3) -> (Literal IntValue 10)))"
+    )
 
     p = mp.ClaimParser("x[3*2:10]")
     e = p.parse_expr()
@@ -107,5 +113,6 @@ def test_parse_quantification():
     p = mp.ClaimParser("forall x :: x == 1")
     e = p.parse_expr()
     assert (
-        str(e) == "(forall  (Var x$$0):None. (BinOp (Var x$$0) Op.Eq (Literal IntValue 1)))"
+        str(e)
+        == "(forall  (Var x$$0):None. (BinOp (Var x$$0) Op.Eq (Literal IntValue 1)))"
     )

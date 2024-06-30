@@ -141,6 +141,7 @@ class AssertStmt(Stmt):
     Args:
         e (Expr): The expression to assert.
     """
+
     def __init__(self, e):
         self.e = e
 
@@ -164,6 +165,7 @@ class WhileStmt(Stmt):
         cond (Expr): The condition expression.
         body (Stmt): The body statement to execute while the condition is true.
     """
+
     def __init__(self, invariant: Expr, cond: Expr, body: Stmt):
         self.invariant = invariant
         self.cond = cond
@@ -187,6 +189,7 @@ class HavocStmt(Stmt):
     Args:
         var_name (str): The name of the variable to havoc.
     """
+
     def __init__(self, var_name: str):
         self.var_name = var_name
 

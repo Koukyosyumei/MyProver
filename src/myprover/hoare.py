@@ -3,18 +3,18 @@ from .claim import (
     AssignStmt,
     AssumeStmt,
     BinOpExpr,
+    BoolValue,
+    CompoundStmt,
     Expr,
     HavocStmt,
     IfElseStmt,
     LiteralExpr,
     Op,
     QuantificationExpr,
-    CompoundStmt,
     SkipStmt,
     Stmt,
     UnOpExpr,
     VarExpr,
-    BoolValue,
     WhileStmt,
 )
 
@@ -93,7 +93,8 @@ def derive_weakest_precondition(command_stmt: Stmt, post_condition: Expr, var2ty
                 "FORALL",
                 VarExpr(command_stmt.var_name + "$0"),
                 post_condition.assign_variable(
-                    command_stmt.var_name, VarExpr(command_stmt.var_name + "$0")
+                    VarExpr(command_stmt.var_name),
+                    VarExpr(command_stmt.var_name + "$0"),
                 ),
                 var2type[command_stmt.var_name],
             ),

@@ -1,6 +1,7 @@
-import pytest
 import os
 import sys
+
+import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
 
@@ -12,7 +13,9 @@ def test_resolve_expr_type():
         mp.type.TypeBOOL,
         False,
     )
-    assert mp.resolve_expr_type({}, mp.claim.LiteralExpr(mp.claim.BoolValue(False))) == (
+    assert mp.resolve_expr_type(
+        {}, mp.claim.LiteralExpr(mp.claim.BoolValue(False))
+    ) == (
         mp.type.TypeBOOL,
         False,
     )
@@ -31,12 +34,16 @@ def test_resolve_expr_type():
 
     assert mp.resolve_expr_type(
         {},
-        mp.claim.UnOpExpr(mp.claim.Op.Not, mp.claim.LiteralExpr(mp.claim.BoolValue(True))),
+        mp.claim.UnOpExpr(
+            mp.claim.Op.Not, mp.claim.LiteralExpr(mp.claim.BoolValue(True))
+        ),
     ) == (mp.type.TypeBOOL, False)
 
     assert mp.resolve_expr_type(
         {},
-        mp.claim.UnOpExpr(mp.claim.Op.Minus, mp.claim.LiteralExpr(mp.claim.IntValue(1))),
+        mp.claim.UnOpExpr(
+            mp.claim.Op.Minus, mp.claim.LiteralExpr(mp.claim.IntValue(1))
+        ),
     ) == (mp.type.TypeINT, False)
 
     assert mp.resolve_expr_type(
@@ -116,7 +123,8 @@ def test_resolve_stmt_type():
 
     env_varname2type = {}
     assert not mp.type.resolve_stmt_type(
-        env_varname2type, mp.claim.CompoundStmt(mp.claim.SkipStmt(), mp.claim.SkipStmt())
+        env_varname2type,
+        mp.claim.CompoundStmt(mp.claim.SkipStmt(), mp.claim.SkipStmt()),
     )
     assert len(env_varname2type) == 0
 
