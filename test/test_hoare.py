@@ -8,9 +8,9 @@ def test_derive_weakest_precondition_simple():
     import myprover as mp
 
     result = mp.derive_weakest_precondition(
-        mp.claim.SkipStmt(), mp.claim.LiteralExpr(mp.claim.VBool(True)), {}
+        mp.claim.SkipStmt(), mp.claim.LiteralExpr(mp.claim.BoolValue(True)), {}
     )
-    assert str(result[0]) == "(Literal VBool True)"
+    assert str(result[0]) == "(Literal BoolValue True)"
     assert len(result[1]) == 0
 
     result = mp.derive_weakest_precondition(
@@ -24,7 +24,7 @@ def test_derive_weakest_precondition_simple():
     assert len(result[1]) == 0
 
     result = mp.derive_weakest_precondition(
-        mp.claim.SeqStmt(
+        mp.claim.CompoundStmt(
             mp.claim.SkipStmt(),
             mp.claim.AssignStmt(mp.claim.VarExpr("x"), mp.claim.LiteralExpr(1)),
         ),
@@ -37,7 +37,7 @@ def test_derive_weakest_precondition_simple():
     assert len(result[1]) == 0
 
     result = mp.derive_weakest_precondition(
-        mp.claim.IfStmt(
+        mp.claim.IfElseStmt(
             mp.claim.BinOpExpr(
                 mp.claim.VarExpr("x"), mp.claim.Op.Eq, mp.claim.LiteralExpr(1)
             ),

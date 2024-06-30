@@ -6,19 +6,19 @@ from .claim import (
     AssumeStmt,
     BinOpExpr,
     HavocStmt,
-    IfStmt,
+    IfElseStmt,
     LiteralExpr,
     Op,
     ClaimParser,
     QuantificationExpr,
-    SeqStmt,
+    CompoundStmt,
     SkipStmt,
     SliceExpr,
     SubscriptExpr,
     UnOpExpr,
     VarExpr,
-    VBool,
-    VInt,
+    BoolValue,
+    IntValue,
     WhileStmt,
 )
 
@@ -71,9 +71,9 @@ def check_and_update_sigma(expr, actual, expected, sigma):
 
 def resolve_expr_type(sigma, expr):
     if isinstance(expr, LiteralExpr):
-        if type(expr.value) == VBool:
+        if type(expr.value) == BoolValue:
             return TypeBOOL, False
-        elif type(expr.value) == VInt:
+        elif type(expr.value) == IntValue:
             return TypeINT, False
         else:
             raise NotImplementedError(f"{type(expr.value)} is not supported")
@@ -169,7 +169,7 @@ def resolve_expr_type(sigma, expr):
 def resolve_stmt_type(sigma, stmt):
     if isinstance(stmt, SkipStmt):
         return False
-    elif isinstance(stmt, SeqStmt):
+    elif isinstance(stmt, CompoundStmt):
         isupdated_s1 = resolve_stmt_type(sigma, stmt.s1)
         isupdated_s2 = resolve_stmt_type(sigma, stmt.s2)
         return isupdated_s1 or isupdated_s2
@@ -186,12 +186,12 @@ def resolve_stmt_type(sigma, stmt):
                 raise TypeError(f"Type Mismatch of {stmt.var}")
             else:
                 return isupdated
-    elif isinstance(stmt, IfStmt):
+    elif isinstance(stmt, IfElseStmt):
         actual, isupdated_cond1 = resolve_expr_type(sigma, stmt.cond)
         _, isupdated_cond2 = check_and_update_sigma(stmt.cond, actual, TypeBOOL, sigma)
-        isupdated_lb = resolve_stmt_type(sigma, stmt.lb)
-        isupdated_rb = resolve_stmt_type(sigma, stmt.rb)
-        return isupdated_cond1 or isupdated_cond2 or isupdated_lb or isupdated_rb
+        isupdated_then = resolve_stmt_type(sigma, stmt.then_branch)
+        isupdated_else = resolve_stmt_type(sigma, stmt.else_branch)
+        return isupdated_cond1 or isupdated_cond2 or isupdated_then or isupdated_else
     elif isinstance(stmt, AssertStmt):
         actual, isupdated_1 = resolve_expr_type(sigma, stmt.e)
         _, isupdated_2 = check_and_update_sigma(stmt.e, actual, TypeBOOL, sigma)

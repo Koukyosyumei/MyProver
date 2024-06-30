@@ -16,10 +16,10 @@ from .stmt import (  # noqa : F401
     AssignStmt,
     AssumeStmt,
     HavocStmt,
-    IfStmt,
-    SeqStmt,
+    IfElseStmt,
+    CompoundStmt,
     SkipStmt,
     Stmt,
     WhileStmt,
 )
-from .value import VBool, VInt  # noqa : F401
+from .value import BoolValue, IntValue  # noqa : F401

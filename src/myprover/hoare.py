@@ -5,16 +5,16 @@ from .claim import (
     BinOpExpr,
     Expr,
     HavocStmt,
-    IfStmt,
+    IfElseStmt,
     LiteralExpr,
     Op,
     QuantificationExpr,
-    SeqStmt,
+    CompoundStmt,
     SkipStmt,
     Stmt,
     UnOpExpr,
     VarExpr,
-    VBool,
+    BoolValue,
     WhileStmt,
 )
 
@@ -48,20 +48,20 @@ def derive_weakest_precondition(command_stmt: Stmt, post_condition: Expr, var2ty
             post_condition.assign_variable(command_stmt.var, command_stmt.expr),
             set(),
         )
-    elif isinstance(command_stmt, SeqStmt):
+    elif isinstance(command_stmt, CompoundStmt):
         # wp(C1;C2, Q) <=> wp(C1, wp(C2, Q))
         wp2, ac2 = derive_weakest_precondition(
             command_stmt.s2, post_condition, var2type
         )
         wp1, ac1 = derive_weakest_precondition(command_stmt.s1, wp2, var2type)
         return (wp1, ac1.union(ac2))
-    elif isinstance(command_stmt, IfStmt):
+    elif isinstance(command_stmt, IfElseStmt):
         # wp(if A then B else C, Q) <=> (A => wp(B, Q)) ^ (!A => wp(C, Q))
         wp1, ac1 = derive_weakest_precondition(
-            command_stmt.lb, post_condition, var2type
+            command_stmt.then_branch, post_condition, var2type
         )
         wp2, ac2 = derive_weakest_precondition(
-            command_stmt.rb, post_condition, var2type
+            command_stmt.else_branch, post_condition, var2type
         )
         cond = BinOpExpr(
             BinOpExpr(command_stmt.cond, Op.Implies, wp1),
@@ -71,7 +71,7 @@ def derive_weakest_precondition(command_stmt: Stmt, post_condition: Expr, var2ty
         return cond, ac1.union(ac2)
     elif isinstance(command_stmt, WhileStmt):
         if command_stmt is None:
-            invariant = LiteralExpr(VBool(True))
+            invariant = LiteralExpr(BoolValue(True))
         else:
             invariant = command_stmt.invariant
         wp, ac = derive_weakest_precondition(command_stmt.body, invariant, var2type)

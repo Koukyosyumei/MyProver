@@ -8,16 +8,16 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../s
 def test_resolve_expr_type():
     import myprover as mp
 
-    assert mp.resolve_expr_type({}, mp.claim.LiteralExpr(mp.claim.VBool(True))) == (
+    assert mp.resolve_expr_type({}, mp.claim.LiteralExpr(mp.claim.BoolValue(True))) == (
         mp.type.TypeBOOL,
         False,
     )
-    assert mp.resolve_expr_type({}, mp.claim.LiteralExpr(mp.claim.VBool(False))) == (
+    assert mp.resolve_expr_type({}, mp.claim.LiteralExpr(mp.claim.BoolValue(False))) == (
         mp.type.TypeBOOL,
         False,
     )
 
-    assert mp.resolve_expr_type({}, mp.claim.LiteralExpr(mp.claim.VInt(1))) == (
+    assert mp.resolve_expr_type({}, mp.claim.LiteralExpr(mp.claim.IntValue(1))) == (
         mp.type.TypeINT,
         False,
     )
@@ -31,38 +31,38 @@ def test_resolve_expr_type():
 
     assert mp.resolve_expr_type(
         {},
-        mp.claim.UnOpExpr(mp.claim.Op.Not, mp.claim.LiteralExpr(mp.claim.VBool(True))),
+        mp.claim.UnOpExpr(mp.claim.Op.Not, mp.claim.LiteralExpr(mp.claim.BoolValue(True))),
     ) == (mp.type.TypeBOOL, False)
 
     assert mp.resolve_expr_type(
         {},
-        mp.claim.UnOpExpr(mp.claim.Op.Minus, mp.claim.LiteralExpr(mp.claim.VInt(1))),
+        mp.claim.UnOpExpr(mp.claim.Op.Minus, mp.claim.LiteralExpr(mp.claim.IntValue(1))),
     ) == (mp.type.TypeINT, False)
 
     assert mp.resolve_expr_type(
         {},
         mp.claim.BinOpExpr(
-            mp.claim.LiteralExpr(mp.claim.VInt(1)),
+            mp.claim.LiteralExpr(mp.claim.IntValue(1)),
             mp.claim.Op.Add,
-            mp.claim.LiteralExpr(mp.claim.VInt(2)),
+            mp.claim.LiteralExpr(mp.claim.IntValue(2)),
         ),
     ) == (mp.type.TypeINT, False)
 
     assert mp.resolve_expr_type(
         {},
         mp.claim.BinOpExpr(
-            mp.claim.LiteralExpr(mp.claim.VInt(1)),
+            mp.claim.LiteralExpr(mp.claim.IntValue(1)),
             mp.claim.Op.Eq,
-            mp.claim.LiteralExpr(mp.claim.VInt(2)),
+            mp.claim.LiteralExpr(mp.claim.IntValue(2)),
         ),
     ) == (mp.type.TypeBOOL, False)
 
     assert mp.resolve_expr_type(
         {},
         mp.claim.BinOpExpr(
-            mp.claim.LiteralExpr(mp.claim.VBool(True)),
+            mp.claim.LiteralExpr(mp.claim.BoolValue(True)),
             mp.claim.Op.And,
-            mp.claim.LiteralExpr(mp.claim.VBool(False)),
+            mp.claim.LiteralExpr(mp.claim.BoolValue(False)),
         ),
     ) == (mp.type.TypeBOOL, False)
 
@@ -70,8 +70,8 @@ def test_resolve_expr_type():
         mp.resolve_expr_type(
             {},
             mp.claim.SliceExpr(
-                mp.claim.LiteralExpr(mp.claim.VInt(0)),
-                mp.claim.LiteralExpr(mp.claim.VInt(10)),
+                mp.claim.LiteralExpr(mp.claim.IntValue(0)),
+                mp.claim.LiteralExpr(mp.claim.IntValue(10)),
             ),
         )
     ) == (mp.type.TypeSLICE, False)
@@ -81,7 +81,7 @@ def test_resolve_expr_type():
         mp.claim.QuantificationExpr(
             "FORALL",
             mp.claim.VarExpr("x"),
-            mp.claim.LiteralExpr(mp.claim.VBool(True)),
+            mp.claim.LiteralExpr(mp.claim.BoolValue(True)),
             mp.type.TypeINT,
         ),
     ) == (mp.type.TypeBOOL, True)
@@ -92,7 +92,7 @@ def test_resolve_expr_type():
             mp.claim.QuantificationExpr(
                 "FORALL",
                 mp.claim.VarExpr("x"),
-                mp.claim.LiteralExpr(mp.claim.VBool(True)),
+                mp.claim.LiteralExpr(mp.claim.BoolValue(True)),
                 None,
             ),
         )
@@ -102,7 +102,7 @@ def test_resolve_expr_type():
         mp.claim.BinOpExpr(
             mp.claim.VarExpr("x"),
             mp.claim.Op.Mult,
-            mp.claim.LiteralExpr(mp.claim.VInt(2)),
+            mp.claim.LiteralExpr(mp.claim.IntValue(2)),
         ),
     ) == (mp.type.TypeINT, False)
 
@@ -116,7 +116,7 @@ def test_resolve_stmt_type():
 
     sigma = {}
     assert not mp.type.resolve_stmt_type(
-        sigma, mp.claim.SeqStmt(mp.claim.SkipStmt(), mp.claim.SkipStmt())
+        sigma, mp.claim.CompoundStmt(mp.claim.SkipStmt(), mp.claim.SkipStmt())
     )
     assert len(sigma) == 0
 
@@ -124,7 +124,7 @@ def test_resolve_stmt_type():
     assert mp.type.resolve_stmt_type(
         sigma,
         mp.claim.AssignStmt(
-            mp.claim.VarExpr("x"), mp.claim.LiteralExpr(mp.claim.VInt(1))
+            mp.claim.VarExpr("x"), mp.claim.LiteralExpr(mp.claim.IntValue(1))
         ),
     )
     assert len(sigma) == 1
@@ -134,7 +134,7 @@ def test_resolve_stmt_type():
     assert not mp.type.resolve_stmt_type(
         sigma,
         mp.claim.AssignStmt(
-            mp.claim.VarExpr("x"), mp.claim.LiteralExpr(mp.claim.VInt(2))
+            mp.claim.VarExpr("x"), mp.claim.LiteralExpr(mp.claim.IntValue(2))
         ),
     )
 
@@ -142,7 +142,7 @@ def test_resolve_stmt_type():
     assert mp.type.resolve_stmt_type(
         sigma,
         mp.claim.AssignStmt(
-            mp.claim.VarExpr("x"), mp.claim.LiteralExpr(mp.claim.VInt(1))
+            mp.claim.VarExpr("x"), mp.claim.LiteralExpr(mp.claim.IntValue(1))
         ),
     )
     assert len(sigma) == 1
@@ -153,18 +153,18 @@ def test_resolve_stmt_type():
         mp.type.resolve_stmt_type(
             sigma,
             mp.claim.AssignStmt(
-                mp.claim.VarExpr("x"), mp.claim.LiteralExpr(mp.claim.VInt(1))
+                mp.claim.VarExpr("x"), mp.claim.LiteralExpr(mp.claim.IntValue(1))
             ),
         )
 
     sigma = {}
     assert not mp.type.resolve_stmt_type(
         sigma,
-        mp.claim.IfStmt(
+        mp.claim.IfElseStmt(
             mp.claim.BinOpExpr(
-                mp.claim.LiteralExpr(mp.claim.VInt(1)),
+                mp.claim.LiteralExpr(mp.claim.IntValue(1)),
                 mp.claim.Op.Eq,
-                mp.claim.LiteralExpr(mp.claim.VInt(1)),
+                mp.claim.LiteralExpr(mp.claim.IntValue(1)),
             ),
             mp.claim.SkipStmt(),
             mp.claim.SkipStmt(),
@@ -177,9 +177,9 @@ def test_resolve_stmt_type():
         sigma,
         mp.claim.AssertStmt(
             mp.claim.BinOpExpr(
-                mp.claim.LiteralExpr(mp.claim.VInt(1)),
+                mp.claim.LiteralExpr(mp.claim.IntValue(1)),
                 mp.claim.Op.Eq,
-                mp.claim.LiteralExpr(mp.claim.VInt(1)),
+                mp.claim.LiteralExpr(mp.claim.IntValue(1)),
             )
         ),
     )
@@ -188,9 +188,9 @@ def test_resolve_stmt_type():
     sigma = {}
     assert mp.type.resolve_stmt_type(
         sigma,
-        mp.claim.SeqStmt(
+        mp.claim.CompoundStmt(
             mp.claim.AssignStmt(
-                mp.claim.VarExpr("x"), mp.claim.LiteralExpr(mp.claim.VInt(1))
+                mp.claim.VarExpr("x"), mp.claim.LiteralExpr(mp.claim.IntValue(1))
             ),
             mp.claim.SkipStmt(),
         ),

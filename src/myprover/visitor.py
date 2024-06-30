@@ -9,19 +9,19 @@ from .claim import (
     AssumeStmt,
     BinOpExpr,
     HavocStmt,
-    IfStmt,
+    IfElseStmt,
     LiteralExpr,
     Op,
     ClaimParser,
     QuantificationExpr,
-    SeqStmt,
+    CompoundStmt,
     SkipStmt,
     SliceExpr,
     SubscriptExpr,
     UnOpExpr,
     VarExpr,
-    VBool,
-    VInt,
+    BoolValue,
+    IntValue,
 )
 from .type import TypeBOOL, TypeINT
 
@@ -43,9 +43,9 @@ class PyToClaim(ast.NodeVisitor):
                 t2_node, stmts = (
                     self.visit(stmts[0]) if need_visit else stmts[0]
                 ), stmts[1:]
-                t_node = SeqStmt(t_node, t2_node)
-            if not isinstance(t_node, SeqStmt):
-                return SeqStmt(t_node, SkipStmt())
+                t_node = CompoundStmt(t_node, t2_node)
+            if not isinstance(t_node, CompoundStmt):
+                return CompoundStmt(t_node, SkipStmt())
             return t_node
         else:
             return SkipStmt()
@@ -60,10 +60,10 @@ class PyToClaim(ast.NodeVisitor):
         return VarExpr(node.id)
 
     def visit_Num(self, node):
-        return LiteralExpr(VInt(node.n))
+        return LiteralExpr(IntValue(node.n))
 
     def visit_NameConstant(self, node):
-        return LiteralExpr(VBool(node.value))
+        return LiteralExpr(BoolValue(node.value))
 
     def visit_Expr(self, node):
         return self.visit(node.value)
@@ -146,7 +146,7 @@ class PyToClaim(ast.NodeVisitor):
         return SubscriptExpr(self.visit(node.value), self.visit(node.slice))
 
     def visit_Constant(self, node):
-        return LiteralExpr(VInt(node.value))
+        return LiteralExpr(IntValue(node.value))
 
     def visit_FunctionDef(self, node):
         return self.walk_seq(node.body)
@@ -156,9 +156,9 @@ class PyToClaim(ast.NodeVisitor):
 
     def visit_If(self, node):
         cond = self.visit(node.test)
-        lb = self.walk_seq(node.body)
+        then_branch = self.walk_seq(node.body)
         rb = self.walk_seq(node.orelse)
-        return IfStmt(cond, lb, rb)
+        return IfElseStmt(cond, then_branch, rb)
 
     def visit_While(self, node):
         cond = self.visit(node.test)
@@ -179,7 +179,7 @@ class PyToClaim(ast.NodeVisitor):
         loop_target_varnames = body.collect_varnames()
         havocs = list(map(HavocStmt, loop_target_varnames))
         invariants = (
-            LiteralExpr(VBool(True))
+            LiteralExpr(BoolValue(True))
             if not invars
             else reduce(lambda i1, i2: BinOpExpr(i1, Op.And, i2), invars)
         )
@@ -188,13 +188,13 @@ class PyToClaim(ast.NodeVisitor):
                 AssertStmt(invariants),
                 *havocs,
                 AssumeStmt(invariants),
-                IfStmt(
+                IfElseStmt(
                     cond,
                     self.walk_seq(
                         [
                             body,
                             AssertStmt(invariants),
-                            AssumeStmt(LiteralExpr(VBool(False))),
+                            AssumeStmt(LiteralExpr(BoolValue(False))),
                         ],
                         need_visit=False,
                     ),

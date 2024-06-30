@@ -10,7 +10,7 @@ from .expr import (
     VarExpr,
 )
 from .op import Op
-from .value import VBool, VInt
+from .value import BoolValue, IntValue
 
 """
 expr           = quantification || logocal
@@ -266,11 +266,11 @@ class ClaimParser:
             if self.consume("INT"):
                 token = self.current_token()
                 value = token.group(0)
-                return LiteralExpr(VInt(int(value)))
+                return LiteralExpr(IntValue(int(value)))
             elif self.consume("BOOL"):
                 token = self.current_token()
                 value = token.group(0)
-                return LiteralExpr(VBool(value == "True"))
+                return LiteralExpr(BoolValue(value == "True"))
             elif self.consume("VAR"):
                 token = self.current_token()
                 value = token.group(0)
