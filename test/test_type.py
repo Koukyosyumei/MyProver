@@ -110,56 +110,56 @@ def test_resolve_expr_type():
 def test_resolve_stmt_type():
     import myprover as mp
 
-    sigma = {}
-    assert not mp.type.resolve_stmt_type(sigma, mp.claim.SkipStmt())
-    assert len(sigma) == 0
+    env_varname2type = {}
+    assert not mp.type.resolve_stmt_type(env_varname2type, mp.claim.SkipStmt())
+    assert len(env_varname2type) == 0
 
-    sigma = {}
+    env_varname2type = {}
     assert not mp.type.resolve_stmt_type(
-        sigma, mp.claim.CompoundStmt(mp.claim.SkipStmt(), mp.claim.SkipStmt())
+        env_varname2type, mp.claim.CompoundStmt(mp.claim.SkipStmt(), mp.claim.SkipStmt())
     )
-    assert len(sigma) == 0
+    assert len(env_varname2type) == 0
 
-    sigma = {}
+    env_varname2type = {}
     assert mp.type.resolve_stmt_type(
-        sigma,
+        env_varname2type,
         mp.claim.AssignStmt(
             mp.claim.VarExpr("x"), mp.claim.LiteralExpr(mp.claim.IntValue(1))
         ),
     )
-    assert len(sigma) == 1
-    assert sigma["x"] == mp.type.TypeINT
+    assert len(env_varname2type) == 1
+    assert env_varname2type["x"] == mp.type.TypeINT
 
-    sigma = {"x": mp.type.TypeINT}
+    env_varname2type = {"x": mp.type.TypeINT}
     assert not mp.type.resolve_stmt_type(
-        sigma,
+        env_varname2type,
         mp.claim.AssignStmt(
             mp.claim.VarExpr("x"), mp.claim.LiteralExpr(mp.claim.IntValue(2))
         ),
     )
 
-    sigma = {"x": mp.type.TypeANY}
+    env_varname2type = {"x": mp.type.TypeANY}
     assert mp.type.resolve_stmt_type(
-        sigma,
+        env_varname2type,
         mp.claim.AssignStmt(
             mp.claim.VarExpr("x"), mp.claim.LiteralExpr(mp.claim.IntValue(1))
         ),
     )
-    assert len(sigma) == 1
-    assert sigma["x"] == mp.type.TypeINT
+    assert len(env_varname2type) == 1
+    assert env_varname2type["x"] == mp.type.TypeINT
 
-    sigma = {"x": mp.type.TypeBOOL}
+    env_varname2type = {"x": mp.type.TypeBOOL}
     with pytest.raises(TypeError):
         mp.type.resolve_stmt_type(
-            sigma,
+            env_varname2type,
             mp.claim.AssignStmt(
                 mp.claim.VarExpr("x"), mp.claim.LiteralExpr(mp.claim.IntValue(1))
             ),
         )
 
-    sigma = {}
+    env_varname2type = {}
     assert not mp.type.resolve_stmt_type(
-        sigma,
+        env_varname2type,
         mp.claim.IfElseStmt(
             mp.claim.BinOpExpr(
                 mp.claim.LiteralExpr(mp.claim.IntValue(1)),
@@ -170,11 +170,11 @@ def test_resolve_stmt_type():
             mp.claim.SkipStmt(),
         ),
     )
-    assert len(sigma) == 0
+    assert len(env_varname2type) == 0
 
-    sigma = {}
+    env_varname2type = {}
     assert not mp.type.resolve_stmt_type(
-        sigma,
+        env_varname2type,
         mp.claim.AssertStmt(
             mp.claim.BinOpExpr(
                 mp.claim.LiteralExpr(mp.claim.IntValue(1)),
@@ -183,11 +183,11 @@ def test_resolve_stmt_type():
             )
         ),
     )
-    assert len(sigma) == 0
+    assert len(env_varname2type) == 0
 
-    sigma = {}
+    env_varname2type = {}
     assert mp.type.resolve_stmt_type(
-        sigma,
+        env_varname2type,
         mp.claim.CompoundStmt(
             mp.claim.AssignStmt(
                 mp.claim.VarExpr("x"), mp.claim.LiteralExpr(mp.claim.IntValue(1))
@@ -195,5 +195,5 @@ def test_resolve_stmt_type():
             mp.claim.SkipStmt(),
         ),
     )
-    assert len(sigma) == 1
-    assert sigma["x"] == mp.type.TypeINT
+    assert len(env_varname2type) == 1
+    assert env_varname2type["x"] == mp.type.TypeINT
