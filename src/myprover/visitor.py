@@ -11,7 +11,6 @@ from .claim import (
     BoolValue,
     ClaimParser,
     CompoundStmt,
-    HavocStmt,
     IfElseStmt,
     IntValue,
     LiteralExpr,
