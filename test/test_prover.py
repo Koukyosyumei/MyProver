@@ -184,3 +184,20 @@ def test_while_with_invariant(prover):
     precond = "N > 0 and M >= 0"
     postcond = "M == res * N + m"
     assert prover.verify_func(func, precond, postcond, False)
+
+def test_while_with_multiple_invariants(prover):
+    def cumsum(n):
+        i = 1
+        r = 0
+        while i <= n:
+            invariant("i <= n + 1")
+            invariant("r == (i - 1) * i // 2")
+            r = r + i
+            i = i + 1
+
+    prover.fname2var_types["cumsum"] = {
+        "n": mp.type.TypeINT,
+    }
+    precond = "n >= 0"
+    postcond = "r == n * (n + 1) // 2"
+    assert prover.verify_func(cumsum, precond, postcond, False)
