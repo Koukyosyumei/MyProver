@@ -10,7 +10,7 @@ import myprover as mp
 
 @pytest.fixture
 def prover():
-    p = mp.MyProver()
+    p = mp.MyProver(unroll_while_loop=True)
     p.fname2var_types = {
         "simple_func": {"x": mp.type.TypeINT, "y": mp.type.TypeINT},
         "complex_func": {
@@ -221,7 +221,6 @@ def test_while_with_continue(prover):
     postcond = "x == 5"
     assert prover.verify_func(func, precond, postcond)
 
-
 def test_while_with_non_trivial_postcondition(prover):
     def func(x):
         y = 0
@@ -234,3 +233,17 @@ def test_while_with_non_trivial_postcondition(prover):
     precond = "x >= 0"
     postcond = "y == (x * (x + 1)) // 2"
     assert prover.verify_func(func, precond, postcond)
+
+def test_while_with_false_invariant():
+    def func(x):
+        while x > 0:
+            invariant("x < 0")
+            x = x - 1
+        return x
+    
+    prover = mp.MyProver()
+    prover.fname2var_types["func"] = {"x": mp.type.TypeINT}
+    precond = "x >= 0"
+    postcond = "x == -1"
+    with pytest.raises(RuntimeError):
+        prover.verify_func(func, precond, postcond)

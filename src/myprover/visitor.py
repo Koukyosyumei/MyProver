@@ -22,6 +22,7 @@ from .claim import (
     SubscriptExpr,
     UnOpExpr,
     VarExpr,
+    WhileStmt
 )
 from .type import TypeBOOL, TypeINT
 
@@ -35,6 +36,10 @@ def is_invariant(y):
 
 
 class PyToClaim(ast.NodeVisitor):
+    def __init__(self, unroll_while_loop=False):
+        super().__init__()
+        self.unroll_while_loop = unroll_while_loop
+
     def walk_seq(self, stmts, need_visit=True):
         if stmts:
             hd, *stmts = stmts
@@ -162,7 +167,12 @@ class PyToClaim(ast.NodeVisitor):
 
     def visit_While(self, node):
         cond = self.visit(node.test)
-        invars = [self.visit_Call(x.value) for x in filter(is_invariant, node.body)]
+        invariants = [self.visit_Call(x.value) for x in filter(is_invariant, node.body)]
+        reduced_invariant = (
+            LiteralExpr(BoolValue(True))
+            if not invariants
+            else reduce(lambda i1, i2: BinOpExpr(i1, Op.And, i2), invariants)
+        )
         body = self.walk_seq(
             list(
                 filter(
@@ -176,33 +186,32 @@ class PyToClaim(ast.NodeVisitor):
                 )
             )
         )
-        loop_target_varnames = body.collect_varnames()
-        havocs = list(map(HavocStmt, loop_target_varnames))
-        invariants = (
-            LiteralExpr(BoolValue(True))
-            if not invars
-            else reduce(lambda i1, i2: BinOpExpr(i1, Op.And, i2), invars)
-        )
-        return self.walk_seq(
-            [
-                AssertStmt(invariants),
-                *havocs,
-                AssumeStmt(invariants),
-                IfElseStmt(
-                    cond,
-                    self.walk_seq(
-                        [
-                            body,
-                            AssertStmt(invariants),
-                            AssumeStmt(LiteralExpr(BoolValue(False))),
-                        ],
-                        need_visit=False,
+
+        if self.unroll_while_loop:
+            loop_target_varnames = body.collect_varnames()
+            havocs = list(map(HavocStmt, loop_target_varnames))
+            return self.walk_seq(
+                [
+                    AssertStmt(reduced_invariant),
+                    *havocs,
+                    AssumeStmt(reduced_invariant),
+                    IfElseStmt(
+                        cond,
+                        self.walk_seq(
+                            [
+                                body,
+                                AssertStmt(reduced_invariant),
+                                AssumeStmt(LiteralExpr(BoolValue(False))),
+                            ],
+                            need_visit=False,
+                        ),
+                        SkipStmt(),
                     ),
-                    SkipStmt(),
-                ),
-            ],
-            need_visit=False,
-        )
+                ],
+                need_visit=False,
+            )
+        else:
+            return WhileStmt(reduced_invariant, cond, body)
 
     def visit_Assert(self, node):
         return AssertStmt(self.visit(node.test))

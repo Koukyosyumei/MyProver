@@ -117,7 +117,7 @@ def resolve_expr_type(env_varname2type, expr):
         if env_varname2type is not None and expr.name in env_varname2type:
             return env_varname2type[expr.name], False
         else:
-            raise NotImplementedError(f"Type of {expr.name} is unkonwn")
+            raise NotImplementedError(f"Type of the variable `{expr.name}` is unkonwn")
     elif isinstance(expr, UnOpExpr):
         if expr.op == Op.Not:
             actual, isupdated_e = resolve_expr_type(env_varname2type, expr.e)
@@ -207,7 +207,7 @@ def resolve_expr_type(env_varname2type, expr):
         actual, _ = resolve_expr_type(env_varname2type, expr.expr)
         check_and_update_varname2type(expr.expr, actual, TypeBOOL, env_varname2type)
         if env_varname2type[expr.var.name] == TypeANY:
-            raise TypeError(f"Type of {expr.var} cannot be inffered")
+            raise TypeError(f"Type of the variable `{expr.var.name}` cannot be inffered")
         expr.var_type = env_varname2type[expr.var.name]
         env_varname2type.pop(expr.var.name)
         return TypeBOOL, True
@@ -275,7 +275,7 @@ def resolve_stmt_type(env_varname2type, stmt):
         )
         isupdated = isupdated or tmp_isupdated
         actual, tmp_isupdated_1 = resolve_expr_type(
-            env_varname2type, TypeBOOL, stmt.invariant
+            env_varname2type, stmt.invariant
         )
         _, tmp_isupdated_2 = check_and_update_varname2type(
             stmt.invariant, actual, TypeBOOL, env_varname2type

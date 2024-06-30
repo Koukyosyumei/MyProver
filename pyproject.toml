@@ -10,6 +10,7 @@ readme = "README.md"
 license = {file = "LICENSE"}
 
 dependencies = [
+  "z3-solver"
 ]
 
 [tool.setuptools]
