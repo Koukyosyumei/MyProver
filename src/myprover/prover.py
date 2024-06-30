@@ -29,7 +29,7 @@ class MyProver:
         """
         self.fname2var_types = {}
 
-    def verify_func(self, func, precond_str, postcond_str):
+    def verify_func(self, func, precond_str, postcond_str, skip_verification_of_invariant=False):
         """
         Verifies the correctness of a function based on the given precondition and postcondition strings.
 
@@ -37,6 +37,7 @@ class MyProver:
             func (function): The function to verify.
             precond_str (str): The precondition string.
             postcond_str (str): The postcondition string.
+            skip_verification_of_invariant (bool): If true, skip verifying that the invariant preserves within while-loop.
 
         Returns:
             bool: True if the function satisfies the precondition and postcondition; otherwise, raises an error.
@@ -80,8 +81,11 @@ class MyProver:
         converter = ClaimToZ3(z3_env_varname2type)
 
         for cond in conditions_to_be_proved:
+            if cond._is_expr_to_verify_invriant and skip_verification_of_invariant:
+                continue
             solver.push()
             z3_cond = converter.visit(UnOpExpr(Op.Not, cond))
+            print("z3-cond", z3_cond)
             solver.add(z3_cond)
             result = solver.check()
             if str(result) == "sat":

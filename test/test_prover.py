@@ -151,7 +151,7 @@ def test_verify_func_with_assume_stmt(prover):
     precond = "True"
     postcond = "x >= 1"
     assert prover.verify_func(assume_func, precond, postcond)
-    
+
 
 def test_while_with_false_invariant(prover):
     def func(x):
@@ -165,3 +165,20 @@ def test_while_with_false_invariant(prover):
     postcond = "x == -1"
     with pytest.raises(RuntimeError):
         prover.verify_func(func, precond, postcond)
+
+
+def test_while_with_true_invariant(prover):
+    def func(M, N):
+        res = 0
+        m = M
+        while (m >= N):
+            invariant("M == res * N + m")
+            m = m - N
+            res = res + 1
+
+    prover.fname2var_types["func"] = {"M": mp.type.TypeINT, "N": mp.type.TypeINT, "res": mp.type.TypeINT}
+    precond = "N > 0 and M >= 0"
+    postcond = "M == res * N + m"
+    assert prover.verify_func(func, precond, postcond, False)
+
+

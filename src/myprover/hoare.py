@@ -75,10 +75,12 @@ def derive_weakest_precondition(command_stmt: Stmt, post_condition: Expr, var2ty
         else:
             invariant = command_stmt.invariant
         # condition to check that the invariant perservs within the body
+        print("ce", command_stmt.encoded_loop)
         if command_stmt.encoded_loop is not None:
             wpi, _ = derive_weakest_precondition(command_stmt.encoded_loop, invariant, var2type)
         else:
             wpi = LiteralExpr(BoolValue(True))
+        wpi._is_expr_to_verify_invriant = True
         # condition to check the correctness of this while-loop
         wp, ac = derive_weakest_precondition(command_stmt.body, invariant, var2type)
         return invariant, ac.union(

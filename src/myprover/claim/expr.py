@@ -11,6 +11,9 @@ class Expr(metaclass=ABCMeta):
     collecting variable names and assigning new variables.
     """
 
+    def __init__(self) -> None:
+        self._is_expr_to_verify_invriant = False
+
     @abstractmethod
     def collect_varnames(self):
         """Collect the variable names in the expression.
@@ -42,6 +45,7 @@ class VarExpr(Expr):
     """
 
     def __init__(self, name: str):
+        super().__init__()
         self.name = name
 
     def __repr__(self):
@@ -80,6 +84,7 @@ class SliceExpr(Expr):
     """
 
     def __init__(self, lower: Expr, upper: Expr):
+        super().__init__()
         self.lower = lower if lower is not None else LiteralExpr(IntValue(0))
         self.upper = upper
 
@@ -116,6 +121,7 @@ class SubscriptExpr(Expr):
     """
 
     def __init__(self, var, subscript: Expr):
+        super().__init__()
         self.var = var
         self.subscript = subscript
 
@@ -151,6 +157,7 @@ class LiteralExpr(Expr):
     """
 
     def __init__(self, v: GeneralValue):
+        super().__init__()
         self.value = v
 
     def __repr__(self):
@@ -186,6 +193,7 @@ class UnOpExpr(Expr):
     """
 
     def __init__(self, op: Op, expr: Expr):
+        super().__init__()
         self.op = op
         self.e = expr
 
@@ -223,6 +231,7 @@ class BinOpExpr(Expr):
     """
 
     def __init__(self, l: Expr, op: Op, r: Expr):
+        super().__init__()
         self.e1 = l
         self.e2 = r
         self.op = op
@@ -267,6 +276,7 @@ class QuantificationExpr(Expr):
     """
 
     def __init__(self, quantifier, var, expr, var_type=None, bounded=False):
+        super().__init__()
         self.quantifier = quantifier
         self.var = var
         self.var_type = var_type
