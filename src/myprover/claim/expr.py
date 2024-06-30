@@ -36,6 +36,10 @@ class Expr(metaclass=ABCMeta):
         """
         pass
 
+    @abstractmethod
+    def clone(self):
+        pass
+
 
 class VarExpr(Expr):
     """Represents a variable expression.
@@ -74,6 +78,9 @@ class VarExpr(Expr):
         else:
             return self
 
+    def clone(self):
+        return VarExpr(self.name)
+
 
 class SliceExpr(Expr):
     """Represents a slice expression.
@@ -110,6 +117,9 @@ class SliceExpr(Expr):
             SliceExpr: The unchanged slice expression.
         """
         return self
+
+    def clone(self):
+        return SliceExpr(self.lower.clone(), self.upper.clone())
 
 
 class SubscriptExpr(Expr):
@@ -148,6 +158,9 @@ class SubscriptExpr(Expr):
         """
         return self
 
+    def clone(self):
+        return SubscriptExpr(self.var.clone(), self.subscript.clone())
+
 
 class LiteralExpr(Expr):
     """Represents a literal expression.
@@ -182,6 +195,9 @@ class LiteralExpr(Expr):
             LiteralExpr: The unchanged literal expression.
         """
         return self
+
+    def clone(self):
+        return LiteralExpr(self.value)
 
 
 class UnOpExpr(Expr):
@@ -219,6 +235,9 @@ class UnOpExpr(Expr):
             UnOpExpr: The updated unary operation expression.
         """
         return UnOpExpr(self.op, self.e.assign_variable(old_var, new_var))
+
+    def clone(self):
+        return UnOpExpr(self.op, self.e.clone())
 
 
 class BinOpExpr(Expr):
@@ -262,6 +281,9 @@ class BinOpExpr(Expr):
             self.op,
             self.e2.assign_variable(old_var, new_var),
         )
+
+    def clone(self):
+        return BinOpExpr(self.e1.clone(), self.op, self.e2.clone())
 
 
 class QuantificationExpr(Expr):
@@ -334,6 +356,15 @@ class QuantificationExpr(Expr):
             self.quantifier,
             self.var,
             self.expr.assign_variable(old_var, new_var),
+            self.var_type,
+            self.bounded,
+        )
+
+    def clone(self):
+        return QuantificationExpr(
+            self.quantifier,
+            self.var.clone(),
+            self.expr.clone(),
             self.var_type,
             self.bounded,
         )

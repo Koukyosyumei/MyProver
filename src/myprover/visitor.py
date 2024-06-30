@@ -22,7 +22,7 @@ from .claim import (
     SubscriptExpr,
     UnOpExpr,
     VarExpr,
-    WhileStmt
+    WhileStmt,
 )
 from .type import TypeBOOL, TypeINT
 
@@ -163,14 +163,14 @@ class PyToClaim(ast.NodeVisitor):
 
     def visit_While(self, node):
         cond = self.visit(node.test)
-        
+
         invariants = [self.visit_Call(x.value) for x in filter(is_invariant, node.body)]
         reduced_invariant = (
             LiteralExpr(BoolValue(True))
             if not invariants
             else reduce(lambda i1, i2: BinOpExpr(i1, Op.And, i2), invariants)
         )
-        
+
         body = self.walk_seq(
             list(
                 filter(
@@ -185,46 +185,7 @@ class PyToClaim(ast.NodeVisitor):
             )
         )
 
-        # https://courses.cs.washington.edu/courses/cse507/19wi/doc/L13.pdf
-        # https://ethz.ch/content/dam/ethz/special-interest/infk/chair-program-method/pm/documents/Education/Courses/SS2022/PV/slides/04-loops-procedures-solutions.pdf
-        # we need to prove that the given invariant condition perserves within the loop.
-        # ----------------
-        # // prior code
-        # assert invariant (check that invariant is satisfied before entering the loop)
-        # havo loop targets (havo the variables that may change within the loop)
-        # assume invariant (assume that the (havoced) invariant is satisfied before entering the loop
-        # if (cond)
-        #    body
-        #    assert invariant (check that invariant is satisfied after the loop)
-        #    assume false (kill this branch to prevent it from going further since it is originally a loop)
-        # else
-        #    skip
-        # {invariant} (post-condition)
-        # ----------------
-
-        loop_target_varnames = body.collect_varnames()
-        havocs = list(map(HavocStmt, loop_target_varnames))
-        encoded_loop = self.walk_seq(
-            [
-                AssertStmt(reduced_invariant),
-                *havocs,
-                AssumeStmt(reduced_invariant),
-                IfElseStmt(
-                    cond,
-                    self.walk_seq(
-                        [
-                            body,
-                            AssertStmt(reduced_invariant),
-                            AssumeStmt(LiteralExpr(BoolValue(False))),
-                        ],
-                        need_visit=False,
-                    ),
-                    SkipStmt(),
-                ),
-            ],
-            need_visit=False,
-        )
-        return WhileStmt(reduced_invariant, cond, body, encoded_loop)
+        return WhileStmt(reduced_invariant, cond, body)
 
     def visit_Assert(self, node):
         return AssertStmt(self.visit(node.test))

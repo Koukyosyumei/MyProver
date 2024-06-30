@@ -159,7 +159,7 @@ def test_while_with_false_invariant(prover):
             invariant("x < 0")
             x = x - 1
         return x
-    
+
     prover.fname2var_types["func"] = {"x": mp.type.TypeINT}
     precond = "x >= 0"
     postcond = "x == -1"
@@ -167,18 +167,20 @@ def test_while_with_false_invariant(prover):
         prover.verify_func(func, precond, postcond)
 
 
-def test_while_with_true_invariant(prover):
+def test_while_with_invariant(prover):
     def func(M, N):
         res = 0
         m = M
-        while (m >= N):
+        while m >= N:
             invariant("M == res * N + m")
             m = m - N
             res = res + 1
 
-    prover.fname2var_types["func"] = {"M": mp.type.TypeINT, "N": mp.type.TypeINT, "res": mp.type.TypeINT}
+    prover.fname2var_types["func"] = {
+        "M": mp.type.TypeINT,
+        "N": mp.type.TypeINT,
+        "res": mp.type.TypeINT,
+    }
     precond = "N > 0 and M >= 0"
     postcond = "M == res * N + m"
     assert prover.verify_func(func, precond, postcond, False)
-
-

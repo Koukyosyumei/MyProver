@@ -144,7 +144,6 @@ class ClaimParser:
             # quantification = ('forall' | 'exists') (var | var [:var]) '::' logical
             quantifier = self.current_token().lastgroup
             var = self.parse_primary()
-            print(type(var))
             # raise RuntimeError(f"Expect `VAR` at pos={self.pos}")
             var_type = None
             if self.consume("COLON"):

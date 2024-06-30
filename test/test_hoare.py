@@ -76,7 +76,7 @@ def test_derive_weakest_precondition_simple():
         {"x": int},
     )
     assert str(result[0]) == "(BinOp (Var x) Op.Ge (Literal 0))"
-    assert len(result[1]) == 3
+    assert len(result[1]) == 2
     ac_strs = {str(e) for e in result[1]}
     assert (
         "(BinOp (BinOp (BinOp (Var x) Op.Ge (Literal 0)) Op.And (BinOp (Var x) Op.Le (Literal 10))) Op.Implies (BinOp (BinOp (Var x) Op.Add (Literal 1)) Op.Ge (Literal 0)))"

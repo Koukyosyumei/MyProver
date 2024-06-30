@@ -11,12 +11,38 @@ class Stmt(metaclass=ABCMeta):
     """
 
     @abstractmethod
-    def collect_varnames(self):
+    def collect_assigned_varnames(self):
         """Collect the variable names in the statement.
 
         Returns:
             set: A set of variable names.
         """
+        pass
+
+    @abstractmethod
+    def collect_havoced_varnames(self):
+        """Collect the variable names in the statement.
+
+        Returns:
+            set: A set of variable names.
+        """
+        pass
+
+    @abstractmethod
+    def assign_variable(self, old_var, new_var):
+        """Assign a new variable in place of an old variable in the expression.
+
+        Args:
+            old_var (VarExpr): The variable to be replaced.
+            new_var (VarExpr): The variable to replace with.
+
+        Returns:
+            Expr: The updated expression.
+        """
+        pass
+
+    @abstractmethod
+    def clone(self):
         pass
 
 
@@ -26,13 +52,31 @@ class SkipStmt(Stmt):
     def __repr__(self):
         return f"(Skip)"
 
-    def collect_varnames(self):
+    def collect_assigned_varnames(self):
         """Collect variable names in the skip statement.
 
         Returns:
             set: An empty set, as skip statements do not have variable names.
         """
         return set()
+
+    def collect_havoced_varnames(self):
+        return set()
+
+    def assign_variable(self, old_var, new_var):
+        """Assign a new variable in place of an old variable in the expression.
+
+        Args:
+            old_var (VarExpr): The variable to be replaced.
+            new_var (VarExpr): The variable to replace with.
+
+        Returns:
+            Expr: The updated expression.
+        """
+        pass
+
+    def clone(self):
+        return SkipStmt()
 
 
 class AssignStmt(Stmt):
@@ -50,13 +94,34 @@ class AssignStmt(Stmt):
     def __repr__(self):
         return f"(Assign {self.var} {self.expr})"
 
-    def collect_varnames(self):
+    def collect_assigned_varnames(self):
         """Collect variable names in the assignment statement.
 
         Returns:
             set: A set of variable names in the assignment statement.
         """
-        return {self.var.name, *self.expr.collect_varnames()}
+        return {self.var.name}
+
+    def collect_havoced_varnames(self):
+        return set()
+
+    def assign_variable(self, old_var, new_var):
+        """Assign a new variable in place of an old variable in the expression.
+
+        Args:
+            old_var (VarExpr): The variable to be replaced.
+            new_var (VarExpr): The variable to replace with.
+
+        Returns:
+            Expr: The updated expression.
+        """
+        return AssignStmt(
+            self.var.assign_variable(old_var, new_var),
+            self.expr.assign_variable(old_var, new_var),
+        )
+
+    def clone(self):
+        return AssignStmt(self.var.clone(), self.expr.clone())
 
 
 class IfElseStmt(Stmt):
@@ -76,17 +141,40 @@ class IfElseStmt(Stmt):
     def __repr__(self):
         return f"(If {self.cond} {self.then_branch} {self.else_branch})"
 
-    def collect_varnames(self):
+    def collect_assigned_varnames(self):
         """Collect variable names in the if statement.
 
         Returns:
             set: A set of variable names in the if statement.
         """
         return {
-            *self.cond.collect_varnames(),
-            *self.then_branch.collect_varnames(),
-            *self.else_branch.collect_varnames(),
+            *self.then_branch.collect_assigned_varnames(),
+            *self.else_branch.collect_assigned_varnames(),
         }
+
+    def collect_havoced_varnames(self):
+        return set()
+
+    def assign_variable(self, old_var, new_var):
+        """Assign a new variable in place of an old variable in the expression.
+
+        Args:
+            old_var (VarExpr): The variable to be replaced.
+            new_var (VarExpr): The variable to replace with.
+
+        Returns:
+            Expr: The updated expression.
+        """
+        return IfElseStmt(
+            self.cond.assign_variable(old_var, new_var),
+            self.then_branch.assign_variable(old_var, new_var),
+            self.else_branch.assign_variable(old_var, new_var),
+        )
+
+    def clone(self):
+        return IfElseStmt(
+            self.cond.clone(), self.then_branch.clone(), self.else_branch.clone()
+        )
 
 
 class CompoundStmt(Stmt):
@@ -104,13 +192,40 @@ class CompoundStmt(Stmt):
     def __repr__(self):
         return f"(Seq {self.s1} {self.s2})"
 
-    def collect_varnames(self):
+    def collect_assigned_varnames(self):
         """Collect variable names in the sequence of statements.
 
         Returns:
             set: A set of variable names in the sequence of statements.
         """
-        return {*self.s1.collect_varnames(), *self.s2.collect_varnames()}
+        return {
+            *self.s1.collect_assigned_varnames(),
+            *self.s2.collect_assigned_varnames(),
+        }
+
+    def collect_havoced_varnames(self):
+        return {
+            *self.s1.collect_havoced_varnames(),
+            *self.s2.collect_havoced_varnames(),
+        }
+
+    def assign_variable(self, old_var, new_var):
+        """Assign a new variable in place of an old variable in the expression.
+
+        Args:
+            old_var (VarExpr): The variable to be replaced.
+            new_var (VarExpr): The variable to replace with.
+
+        Returns:
+            Expr: The updated expression.
+        """
+        return CompoundStmt(
+            self.s1.assign_variable(old_var, new_var),
+            self.s2.assign_variable(old_var, new_var),
+        )
+
+    def clone(self):
+        return CompoundStmt(self.s1.clone(), self.s2.clone())
 
 
 class AssumeStmt(Stmt):
@@ -126,13 +241,31 @@ class AssumeStmt(Stmt):
     def __repr__(self):
         return f"(Assume {self.e})"
 
-    def collect_varnames(self):
+    def collect_assigned_varnames(self):
         """Collect variable names in the assume statement.
 
         Returns:
             set: A set of variable names in the assume statement.
         """
-        return {*self.e.collect_varnames()}
+        return set()  # {*self.e.collect_assigned_varnames()}
+
+    def collect_havoced_varnames(self):
+        return set()
+
+    def assign_variable(self, old_var, new_var):
+        """Assign a new variable in place of an old variable in the expression.
+
+        Args:
+            old_var (VarExpr): The variable to be replaced.
+            new_var (VarExpr): The variable to replace with.
+
+        Returns:
+            Expr: The updated expression.
+        """
+        return AssumeStmt(self.e.assign_variable(old_var, new_var))
+
+    def clone(self):
+        return AssumeStmt(self.e.clone())
 
 
 class AssertStmt(Stmt):
@@ -148,13 +281,31 @@ class AssertStmt(Stmt):
     def __repr__(self):
         return f"(Assert {self.e})"
 
-    def collect_varnames(self):
+    def collect_assigned_varnames(self):
         """Collect variable names in the assert statement.
 
         Returns:
             set: A set of variable names in the assert statement.
         """
-        return {*self.e.collect_varnames()}
+        return set()  # {*self.e.collect_assigned_varnames()}
+
+    def collect_havoced_varnames(self):
+        return set()
+
+    def assign_variable(self, old_var, new_var):
+        """Assign a new variable in place of an old variable in the expression.
+
+        Args:
+            old_var (VarExpr): The variable to be replaced.
+            new_var (VarExpr): The variable to replace with.
+
+        Returns:
+            Expr: The updated expression.
+        """
+        return AssertStmt(self.e.assign_variable(old_var, new_var))
+
+    def clone(self):
+        return AssertStmt(self.e.clone())
 
 
 class WhileStmt(Stmt):
@@ -164,25 +315,47 @@ class WhileStmt(Stmt):
         invariant (Expr): The invariant expression.
         cond (Expr): The condition expression.
         body (Stmt): The body statement to execute while the condition is true.
-        encoded_loop (Stmt): The encoded loop statament to check that invariant is preserved within body
     """
 
-    def __init__(self, invariant: Expr, cond: Expr, body: Stmt, encoded_loop: Stmt = None):
+    def __init__(
+        self, invariant: Expr, cond: Expr, body: Stmt
+    ):
         self.invariant = invariant
         self.cond = cond
         self.body = body if body is not None else SkipStmt()
-        self.encoded_loop = encoded_loop
 
     def __repr__(self):
         return f"(While {self.cond} {self.body})"
 
-    def collect_varnames(self):
+    def collect_assigned_varnames(self):
         """Collect variable names in the while statement.
 
         Returns:
             set: A set of variable names in the while statement.
         """
-        return {*self.body.collect_varnames()}
+        return {*self.body.collect_assigned_varnames()}
+
+    def collect_havoced_varnames(self):
+        return set()
+
+    def assign_variable(self, old_var, new_var):
+        """Assign a new variable in place of an old variable in the expression.
+
+        Args:
+            old_var (VarExpr): The variable to be replaced.
+            new_var (VarExpr): The variable to replace with.
+
+        Returns:
+            Expr: The updated expression.
+        """
+        return WhileStmt(
+            self.invariant.assign_variable(old_var, new_var),
+            self.cond.assign_variable(old_var, new_var),
+            self.body.assign_variable(old_var, new_var)
+        )
+
+    def clone(self):
+        return WhileStmt(self.invariant.clone(), self.cond.clone(), self.body.clone())
 
 
 class HavocStmt(Stmt):
@@ -198,10 +371,19 @@ class HavocStmt(Stmt):
     def __repr__(self):
         return f"(Havoc {self.var_name})"
 
-    def collect_varnames(self):
+    def collect_assigned_varnames(self):
         """Collect variable names in the havoc statement.
 
         Returns:
             set: An empty set, as havoc statements do not have variable names.
         """
         return set()
+
+    def collect_havoced_varnames(self):
+        return {self.var_name}
+
+    def assign_variable(self, old_var, new_var):
+        pass
+
+    def clone(self):
+        return HavocStmt(self.var_name)

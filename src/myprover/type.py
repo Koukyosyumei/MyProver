@@ -207,7 +207,9 @@ def resolve_expr_type(env_varname2type, expr):
         actual, _ = resolve_expr_type(env_varname2type, expr.expr)
         check_and_update_varname2type(expr.expr, actual, TypeBOOL, env_varname2type)
         if env_varname2type[expr.var.name] == TypeANY:
-            raise TypeError(f"Type of the variable `{expr.var.name}` cannot be inffered")
+            raise TypeError(
+                f"Type of the variable `{expr.var.name}` cannot be inffered"
+            )
         expr.var_type = env_varname2type[expr.var.name]
         env_varname2type.pop(expr.var.name)
         return TypeBOOL, True
@@ -274,9 +276,7 @@ def resolve_stmt_type(env_varname2type, stmt):
             stmt.cond, actual, TypeBOOL, env_varname2type
         )
         isupdated = isupdated or tmp_isupdated
-        actual, tmp_isupdated_1 = resolve_expr_type(
-            env_varname2type, stmt.invariant
-        )
+        actual, tmp_isupdated_1 = resolve_expr_type(env_varname2type, stmt.invariant)
         _, tmp_isupdated_2 = check_and_update_varname2type(
             stmt.invariant, actual, TypeBOOL, env_varname2type
         )
