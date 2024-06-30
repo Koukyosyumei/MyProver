@@ -1,5 +1,3 @@
-import copy
-
 from .claim import (
     AssertStmt,
     AssignStmt,
@@ -109,7 +107,7 @@ def derive_weakest_precondition(command_stmt: Stmt, post_condition: Expr, var2ty
     elif isinstance(command_stmt, AssertStmt):
         return BinOpExpr(post_condition, Op.Implies, command_stmt.e), set()
     
-    
+
 def encode_while_loop(stmt: Stmt):
     if (
         isinstance(stmt, AssignStmt)
