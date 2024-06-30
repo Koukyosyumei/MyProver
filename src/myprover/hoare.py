@@ -70,13 +70,20 @@ def derive_weakest_precondition(command_stmt: Stmt, post_condition: Expr, var2ty
         )
         return cond, ac1.union(ac2)
     elif isinstance(command_stmt, WhileStmt):
-        if command_stmt is None:
+        if command_stmt.invariant is None:
             invariant = LiteralExpr(BoolValue(True))
         else:
             invariant = command_stmt.invariant
+        # condition to check that the invariant perservs within the body
+        if command_stmt.encoded_loop is not None:
+            wpi, _ = derive_weakest_precondition(command_stmt.encoded_loop, invariant, var2type)
+        else:
+            wpi = LiteralExpr(BoolValue(True))
+        # condition to check the correctness of this while-loop
         wp, ac = derive_weakest_precondition(command_stmt.body, invariant, var2type)
         return invariant, ac.union(
             {
+                wpi,
                 BinOpExpr(
                     BinOpExpr(invariant, Op.And, command_stmt.cond), Op.Implies, wp
                 ),

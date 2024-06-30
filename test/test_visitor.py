@@ -45,9 +45,10 @@ def test_py2claim():
 
     source = "def f(n):\n    while x > 0:\n        x = x - 1"
     py_tree = ast.parse(source)
-    mp_tree = mp.PyToClaim(unroll_while_loop=True).visit(py_tree)
+    mp_tree = mp.PyToClaim().visit(py_tree)
+    assert str(mp_tree) == "(Seq (While (BinOp (Var x) Op.Gt (Literal IntValue 0)) (Seq (Assign (Var x) (BinOp (Var x) Op.Minus (Literal IntValue 1))) (Skip))) (Skip))"
     assert (
-        str(mp_tree)
+        str(mp_tree.s1.encoded_loop)
         == "(Seq (Seq (Seq (Assert (Literal BoolValue True)) (Havoc x)) (Assume (Literal BoolValue True))) (If (BinOp (Var x) Op.Gt (Literal IntValue 0)) (Seq (Seq (Seq (Assign (Var x) (BinOp (Var x) Op.Minus (Literal IntValue 1))) (Skip)) (Assert (Literal BoolValue True))) (Assume (Literal BoolValue False))) (Skip)))"
     )
 

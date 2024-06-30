@@ -23,12 +23,11 @@ class MyProver:
         fname2var_types (dict): A dictionary mapping function names to variable types.
     """
 
-    def __init__(self, unroll_while_loop=False):
+    def __init__(self):
         """
         Initializes the MyProver instance with an empty dictionary for function name to variable types mapping.
         """
         self.fname2var_types = {}
-        self.unroll_while_loop=unroll_while_loop
 
     def verify_func(self, func, precond_str, postcond_str):
         """
@@ -48,7 +47,7 @@ class MyProver:
         code = inspect.getsource(func)
         code = code.lstrip()
         py_ast = ast.parse(code)
-        claim_ast = PyToClaim(self.unroll_while_loop).visit(py_ast)
+        claim_ast = PyToClaim().visit(py_ast)
 
         precond_expr = ClaimParser(precond_str).parse_expr()
         postcond_expr = ClaimParser(postcond_str).parse_expr()

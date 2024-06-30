@@ -164,12 +164,14 @@ class WhileStmt(Stmt):
         invariant (Expr): The invariant expression.
         cond (Expr): The condition expression.
         body (Stmt): The body statement to execute while the condition is true.
+        encoded_loop (Stmt): The encoded loop statament to check that invariant is preserved within body
     """
 
-    def __init__(self, invariant: Expr, cond: Expr, body: Stmt):
+    def __init__(self, invariant: Expr, cond: Expr, body: Stmt, encoded_loop: Stmt = None):
         self.invariant = invariant
         self.cond = cond
         self.body = body if body is not None else SkipStmt()
+        self.encoded_loop = encoded_loop
 
     def __repr__(self):
         return f"(While {self.cond} {self.body})"

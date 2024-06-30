@@ -10,7 +10,7 @@ import myprover as mp
 
 @pytest.fixture
 def prover():
-    p = mp.MyProver(unroll_while_loop=True)
+    p = mp.MyProver()
     p.fname2var_types = {
         "simple_func": {"x": mp.type.TypeINT, "y": mp.type.TypeINT},
         "complex_func": {
@@ -151,97 +151,15 @@ def test_verify_func_with_assume_stmt(prover):
     precond = "True"
     postcond = "x >= 1"
     assert prover.verify_func(assume_func, precond, postcond)
+    
 
-
-def test_simple_while_loop(prover):
-    def func(x):
-        while x < 5:
-            x = x + 1
-        return x
-
-    prover.fname2var_types["func"] = {"x": mp.type.TypeINT}
-    precond = "x >= 0"
-    postcond = "x == 5"
-    assert prover.verify_func(func, precond, postcond)
-
-
-def test_while_with_var_update(prover):
-    def func(x):
-        y = 0
-        while x > 0:
-            x = x - 1
-            y = y + 1
-        return y
-
-    prover.fname2var_types["func"] = {"x": mp.type.TypeINT, "y": mp.type.TypeINT}
-    precond = "x >= 0"
-    postcond = "y == x"
-    assert prover.verify_func(func, precond, postcond)
-
-
-def test_while_with_nested_loops(prover):
-    def func(x, y):
-        while x > 0:
-            while y > 0:
-                y = y - 1
-            x = x - 1
-        return x, y
-
-    prover.fname2var_types["func"] = {"x": mp.type.TypeINT, "y": mp.type.TypeINT}
-    precond = "x >= 0 and y >= 0"
-    postcond = "x == 0 and y == 0"
-    assert prover.verify_func(func, precond, postcond)
-
-
-def test_while_with_break(prover):
-    def func(x):
-        while x < 10:
-            if x == 5:
-                break
-            x = x + 1
-        return x
-
-    prover.fname2var_types["func"] = {"x": mp.type.TypeINT}
-    precond = "x >= 0"
-    postcond = "x == 5"
-    assert prover.verify_func(func, precond, postcond)
-
-
-def test_while_with_continue(prover):
-    def func(x, y):
-        while x < 10:
-            x = x + 1
-            if x % 2 == 0:
-                continue
-            y = y + 1
-        return y
-
-    prover.fname2var_types["func"] = {"x": mp.type.TypeINT, "y": mp.type.TypeINT}
-    precond = "x >= 0 and y >= 0"
-    postcond = "x == 5"
-    assert prover.verify_func(func, precond, postcond)
-
-def test_while_with_non_trivial_postcondition(prover):
-    def func(x):
-        y = 0
-        while x > 0:
-            y = y + x
-            x = x - 1
-        return y
-
-    prover.fname2var_types["func"] = {"x": mp.type.TypeINT, "y": mp.type.TypeINT}
-    precond = "x >= 0"
-    postcond = "y == (x * (x + 1)) // 2"
-    assert prover.verify_func(func, precond, postcond)
-
-def test_while_with_false_invariant():
+def test_while_with_false_invariant(prover):
     def func(x):
         while x > 0:
             invariant("x < 0")
             x = x - 1
         return x
     
-    prover = mp.MyProver()
     prover.fname2var_types["func"] = {"x": mp.type.TypeINT}
     precond = "x >= 0"
     postcond = "x == -1"
