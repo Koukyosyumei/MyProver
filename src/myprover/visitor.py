@@ -34,14 +34,12 @@ def is_invariant(y):
 
 
 class PyToClaim(ast.NodeVisitor):
-    def walk_seq(self, stmts, need_visit=True):
+    def walk_seq(self, stmts):
         if stmts:
             hd, *stmts = stmts
-            t_node = self.visit(hd) if need_visit else hd
+            t_node = self.visit(hd)
             while stmts:
-                t2_node, stmts = (
-                    self.visit(stmts[0]) if need_visit else stmts[0]
-                ), stmts[1:]
+                t2_node, stmts = (self.visit(stmts[0])), stmts[1:]
                 t_node = CompoundStmt(t_node, t2_node)
             if not isinstance(t_node, CompoundStmt):
                 return CompoundStmt(t_node, SkipStmt())

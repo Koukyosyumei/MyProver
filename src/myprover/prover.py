@@ -3,12 +3,7 @@ import inspect
 
 import z3
 
-from .claim import (
-    BinOpExpr,
-    ClaimParser,
-    Op,
-    UnOpExpr
-)
+from .claim import BinOpExpr, ClaimParser, Op, UnOpExpr
 from .hoare import derive_weakest_precondition, encode_while_loop
 from .type import (
     check_and_update_varname2type,
@@ -23,23 +18,24 @@ class MyProver:
     A class used to verify the correctness of functions based on preconditions and postconditions.
 
     Attributes:
-        fname2var_types (dict): A dictionary mapping function names to variable types.
+        sname2var_types (dict): A dictionary mapping scope names to variable types.
     """
 
     def __init__(self):
         """
-        Initializes the MyProver instance with an empty dictionary for function name to variable types mapping.
+        Initializes the MyProver instance with an empty dictionary for scope name to variable types mapping.
         """
-        self.fname2var_types = {}
+        self.sname2var_types = {}
 
-    def verify_func(
-        self, func, precond_str, postcond_str, skip_verification_of_invariant=True
+    def verify(
+        self, code_str: str, scope_name: str, precond_str: str, postcond_str: str, skip_verification_of_invariant: bool =True
     ):
         """
         Verifies the correctness of a function based on the given precondition and postcondition strings.
 
         Args:
-            func (function): The function to verify.
+            code_str (str): The code string to verify.
+            scope_name (str): The name of the scope, such as a name of a function.
             precond_str (str): The precondition string.
             postcond_str (str): The postcondition string.
             skip_verification_of_invariant (bool): If true, skip verifying that the invariant preserves within while-loop.
@@ -50,24 +46,24 @@ class MyProver:
         Raises:
             RuntimeError: If a violated condition is found during verification.
         """
-        code = inspect.getsource(func)
-        code = code.lstrip()
-        py_ast = ast.parse(code)
+        # code = inspect.getsource(func)
+        # code = code.lstrip()
+        py_ast = ast.parse(code_str)
         claim_ast = PyToClaim().visit(py_ast)
 
         precond_expr = ClaimParser(precond_str).parse_expr()
         postcond_expr = ClaimParser(postcond_str).parse_expr()
 
-        resolve_stmt_type(self.fname2var_types[func.__name__], claim_ast)
-        actual, _ = resolve_expr_type(self.fname2var_types[func.__name__], precond_expr)
+        resolve_stmt_type(self.sname2var_types[scope_name], claim_ast)
+        actual, _ = resolve_expr_type(self.sname2var_types[scope_name], precond_expr)
         check_and_update_varname2type(
-            precond_expr, actual, bool, self.fname2var_types[func.__name__]
+            precond_expr, actual, bool, self.sname2var_types[scope_name]
         )
         actual, _ = resolve_expr_type(
-            self.fname2var_types[func.__name__], postcond_expr
+            self.sname2var_types[scope_name], postcond_expr
         )
         check_and_update_varname2type(
-            postcond_expr, actual, bool, self.fname2var_types[func.__name__]
+            postcond_expr, actual, bool, self.sname2var_types[scope_name]
         )
 
         conditions_for_invariants = []
@@ -77,14 +73,14 @@ class MyProver:
                 0
             ]  # TODO: Support multiple while-loops within a function
             wpi, aci = derive_weakest_precondition(
-                encoded_claim_ast, inv_expr, self.fname2var_types[func.__name__]
+                encoded_claim_ast, inv_expr, self.sname2var_types[scope_name]
             )
             conditions_for_invariants = [
                 BinOpExpr(precond_expr, Op.Implies, wpi)
             ] + list(aci)
 
         wp, ac = derive_weakest_precondition(
-            claim_ast, postcond_expr, self.fname2var_types[func.__name__]
+            claim_ast, postcond_expr, self.sname2var_types[scope_name]
         )
         conditions_to_be_proved = (
             conditions_for_invariants
@@ -93,7 +89,7 @@ class MyProver:
         )
 
         z3_env_varname2type = {}
-        for n, t in self.fname2var_types[func.__name__].items():
+        for n, t in self.sname2var_types[scope_name].items():
             if t == int:
                 z3_env_varname2type[n] = z3.Int(n)
             elif t == bool:

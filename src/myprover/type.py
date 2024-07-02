@@ -6,7 +6,6 @@ from .claim import (
     AssumeStmt,
     BinOpExpr,
     BoolValue,
-    ClaimParser,
     CompoundStmt,
     HavocStmt,
     IfElseStmt,
@@ -16,14 +15,17 @@ from .claim import (
     QuantificationExpr,
     SkipStmt,
     SliceExpr,
-    SubscriptExpr,
+    Stmt,
     UnOpExpr,
     VarExpr,
     WhileStmt,
+    Expr,
 )
 
 
-def check_and_update_varname2type(expr, actual, expected, env_varname2type):
+def check_and_update_varname2type(
+    expr: Expr, actual: type, expected: type, env_varname2type: dict[str, type]
+) -> tuple[type, bool]:
     """Check and update the type environment env_varname2type based on type checking rules.
 
     Args:
@@ -48,7 +50,9 @@ def check_and_update_varname2type(expr, actual, expected, env_varname2type):
         raise TypeError(f"Expected Type:{expected}, Actual Type:{actual}")
 
 
-def resolve_expr_type(env_varname2type, expr):
+def resolve_expr_type(
+    env_varname2type: dict[str, type], expr: Expr
+) -> tuple[type, bool]:
     """Resolve the type of an expression recursively using type inference.
 
     Args:
@@ -173,7 +177,7 @@ def resolve_expr_type(env_varname2type, expr):
         raise NotImplementedError(f"{type(expr)} is not suported")
 
 
-def resolve_stmt_type(env_varname2type, stmt):
+def resolve_stmt_type(env_varname2type: dict[str, type], stmt: Stmt) -> bool:
     """Resolve the type of a statement using type inference.
 
     Args:

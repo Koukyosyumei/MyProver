@@ -317,9 +317,7 @@ class WhileStmt(Stmt):
         body (Stmt): The body statement to execute while the condition is true.
     """
 
-    def __init__(
-        self, invariant: Expr, cond: Expr, body: Stmt
-    ):
+    def __init__(self, invariant: Expr, cond: Expr, body: Stmt):
         self.invariant = invariant
         self.cond = cond
         self.body = body if body is not None else SkipStmt()
@@ -351,7 +349,7 @@ class WhileStmt(Stmt):
         return WhileStmt(
             self.invariant.assign_variable(old_var, new_var),
             self.cond.assign_variable(old_var, new_var),
-            self.body.assign_variable(old_var, new_var)
+            self.body.assign_variable(old_var, new_var),
         )
 
     def clone(self):

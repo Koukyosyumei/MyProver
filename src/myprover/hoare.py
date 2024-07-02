@@ -106,7 +106,7 @@ def derive_weakest_precondition(command_stmt: Stmt, post_condition: Expr, var2ty
         return BinOpExpr(command_stmt.e, Op.Implies, post_condition), set()
     elif isinstance(command_stmt, AssertStmt):
         return BinOpExpr(post_condition, Op.Implies, command_stmt.e), set()
-    
+
 
 def encode_while_loop(stmt: Stmt):
     if (
@@ -142,7 +142,7 @@ def encode_while_loop(stmt: Stmt):
         #    skip
         # {invariant} (post-condition)
         # ----------------
-        
+
         loop_target_varnames = stmt.body.collect_assigned_varnames()
         havocs = list(map(HavocStmt, loop_target_varnames))
         after_havoc_stmts = [
