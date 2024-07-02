@@ -19,6 +19,14 @@ from .claim import (
 )
 
 
+def assume():
+    pass
+
+
+def invariant():
+    pass
+
+
 def derive_weakest_precondition(
     command_stmt: Stmt, post_condition: Expr, var2type: dict[str, type]
 ):
