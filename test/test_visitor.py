@@ -118,7 +118,7 @@ def test_claim2z3_quantification(claim_to_z3, name_dict):
         "FORALL",
         mp.claim.VarExpr("x"),
         mp.claim.LiteralExpr(mp.claim.IntValue(5)),
-        mp.type.TypeINT,
+        int,
     )
     result = claim_to_z3.visit(expr)
     assert result == z3.ForAll(name_dict["x"], True)
@@ -128,7 +128,7 @@ def test_claim2z3_quantification(claim_to_z3, name_dict):
         "FORALL",
         mp.claim.VarExpr("z"),
         mp.claim.LiteralExpr(mp.claim.BoolValue(True)),
-        mp.type.TypeBOOL,
+        bool,
     )
     claim_to_z3.visit(expr)
     assert isinstance(name_dict["z"], z3.BoolRef)

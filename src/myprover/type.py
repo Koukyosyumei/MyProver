@@ -23,51 +23,6 @@ from .claim import (
 )
 
 
-class Type(metaclass=ABCMeta):
-    """Abstract base class for types used in the system."""
-
-    pass
-
-
-class TypeINT(Type):
-    """Represents the integer type."""
-
-    def __init__(self) -> None:
-        super().__init__()
-
-
-class TypeBOOL(Type):
-    """Represents the boolean type."""
-
-    def __init__(self) -> None:
-        super().__init__()
-
-
-class TypeSLICE(Type):
-    """Represents the slice type."""
-
-    def __init__(self) -> None:
-        super().__init__()
-
-
-class TypeANY(Type):
-    """Represents any type (used for type inference)."""
-
-    def __init__(self) -> None:
-        super().__init__()
-
-
-class TypeARROW(Type):
-    def __init__(self, t1, t2):
-        self.t1 = t1
-        self.t2 = t2
-
-
-class TPROD(Type):
-    def __init__(self, *types) -> None:
-        self.types = tuple(types)
-
-
 def check_and_update_varname2type(expr, actual, expected, env_varname2type):
     """Check and update the type environment env_varname2type based on type checking rules.
 
@@ -83,7 +38,7 @@ def check_and_update_varname2type(expr, actual, expected, env_varname2type):
     Raises:
         TypeError: If there is a type mismatch between actual and expected types.
     """
-    if actual == TypeANY and isinstance(expr.e, VarExpr):
+    if actual == None and isinstance(expr.e, VarExpr):
         env_varname2type[expr.name] = expected
         return expected, True
     elif actual == expected:
@@ -108,9 +63,9 @@ def resolve_expr_type(env_varname2type, expr):
     """
     if isinstance(expr, LiteralExpr):
         if type(expr.value) == BoolValue:
-            return TypeBOOL, False
+            return bool, False
         elif type(expr.value) == IntValue:
-            return TypeINT, False
+            return int, False
         else:
             raise NotImplementedError(f"{type(expr.value)} is not supported")
     elif isinstance(expr, VarExpr):
@@ -121,10 +76,10 @@ def resolve_expr_type(env_varname2type, expr):
     elif isinstance(expr, UnOpExpr):
         if expr.op == Op.Not:
             actual, isupdated_e = resolve_expr_type(env_varname2type, expr.e)
-            expected = TypeBOOL
+            expected = bool
         elif expr.op == Op.Minus:
             actual, isupdated_e = resolve_expr_type(env_varname2type, expr.e)
-            expected = TypeINT
+            expected = int
         type_expr, isupdated_expr = check_and_update_varname2type(
             expr, actual, expected, env_varname2type
         )
@@ -134,11 +89,11 @@ def resolve_expr_type(env_varname2type, expr):
         if expr.op.value.isArith:
             actual, isupdated_e1_1 = resolve_expr_type(env_varname2type, expr.e1)
             _, isupdated_e1_2 = check_and_update_varname2type(
-                expr.e1, actual, TypeINT, env_varname2type
+                expr.e1, actual, int, env_varname2type
             )
             actual, isupdated_e2_1 = resolve_expr_type(env_varname2type, expr.e2)
             type_e2, isupdated_e2_2 = check_and_update_varname2type(
-                expr.e2, actual, TypeINT, env_varname2type
+                expr.e2, actual, int, env_varname2type
             )
             return (
                 type_e2,
@@ -147,24 +102,24 @@ def resolve_expr_type(env_varname2type, expr):
         elif expr.op.value.isComp:
             actual, isupdated_e1_1 = resolve_expr_type(env_varname2type, expr.e1)
             _, isupdated_e1_2 = check_and_update_varname2type(
-                expr.e1, actual, TypeINT, env_varname2type
+                expr.e1, actual, int, env_varname2type
             )
             actual, isupdated_e2_1 = resolve_expr_type(env_varname2type, expr.e2)
             _, isupdated_e2_2 = check_and_update_varname2type(
-                expr.e2, actual, TypeINT, env_varname2type
+                expr.e2, actual, int, env_varname2type
             )
             return (
-                TypeBOOL,
+                bool,
                 isupdated_e1_1 or isupdated_e1_2 or isupdated_e2_1 or isupdated_e2_2,
             )
         elif expr.op.value.isBool:
             actual, isupdated_e1_1 = resolve_expr_type(env_varname2type, expr.e1)
             _, isupdated_e1_2 = check_and_update_varname2type(
-                expr.e1, actual, TypeBOOL, env_varname2type
+                expr.e1, actual, bool, env_varname2type
             )
             actual, isupdated_e2_1 = resolve_expr_type(env_varname2type, expr.e2)
             type_e2, isupdated_e2_2 = check_and_update_varname2type(
-                expr.e2, actual, TypeBOOL, env_varname2type
+                expr.e2, actual, bool, env_varname2type
             )
             return (
                 type_e2,
@@ -183,17 +138,17 @@ def resolve_expr_type(env_varname2type, expr):
                 env_varname2type, expr.lower
             )
             _, isupdated_lower_1_2 = check_and_update_varname2type(
-                expr.lower, actual, TypeINT, env_varname2type
+                expr.lower, actual, int, env_varname2type
             )
         if expr.upper:
             actual, isupdated_higher_1_1 = resolve_expr_type(
                 env_varname2type, expr.upper
             )
             _, isupdated_higher_1_2 = check_and_update_varname2type(
-                expr.lower, actual, TypeINT, env_varname2type
+                expr.lower, actual, int, env_varname2type
             )
         return (
-            TypeSLICE,
+            None,
             isupdated_lower_1_1
             or isupdated_lower_1_2
             or isupdated_higher_1_1
@@ -202,17 +157,17 @@ def resolve_expr_type(env_varname2type, expr):
 
     elif isinstance(expr, QuantificationExpr):
         env_varname2type[expr.var.name] = (
-            TypeANY if expr.var_type is None else expr.var_type
+            None if expr.var_type is None else expr.var_type
         )
         actual, _ = resolve_expr_type(env_varname2type, expr.expr)
-        check_and_update_varname2type(expr.expr, actual, TypeBOOL, env_varname2type)
-        if env_varname2type[expr.var.name] == TypeANY:
+        check_and_update_varname2type(expr.expr, actual, bool, env_varname2type)
+        if env_varname2type[expr.var.name] == None:
             raise TypeError(
                 f"Type of the variable `{expr.var.name}` cannot be inffered"
             )
         expr.var_type = env_varname2type[expr.var.name]
         env_varname2type.pop(expr.var.name)
-        return TypeBOOL, True
+        return bool, True
 
     else:
         raise NotImplementedError(f"{type(expr)} is not suported")
@@ -243,7 +198,7 @@ def resolve_stmt_type(env_varname2type, stmt):
             env_varname2type[stmt.var.name] = type_of_expr
             return True
         else:
-            if env_varname2type[stmt.var.name] == TypeANY:
+            if env_varname2type[stmt.var.name] == None:
                 env_varname2type[stmt.var.name] = type_of_expr
                 return True
             elif env_varname2type[stmt.var.name] != type_of_expr:
@@ -253,7 +208,7 @@ def resolve_stmt_type(env_varname2type, stmt):
     elif isinstance(stmt, IfElseStmt):
         actual, isupdated_cond1 = resolve_expr_type(env_varname2type, stmt.cond)
         _, isupdated_cond2 = check_and_update_varname2type(
-            stmt.cond, actual, TypeBOOL, env_varname2type
+            stmt.cond, actual, bool, env_varname2type
         )
         isupdated_then = resolve_stmt_type(env_varname2type, stmt.then_branch)
         isupdated_else = resolve_stmt_type(env_varname2type, stmt.else_branch)
@@ -261,24 +216,24 @@ def resolve_stmt_type(env_varname2type, stmt):
     elif isinstance(stmt, AssertStmt):
         actual, isupdated_1 = resolve_expr_type(env_varname2type, stmt.e)
         _, isupdated_2 = check_and_update_varname2type(
-            stmt.e, actual, TypeBOOL, env_varname2type
+            stmt.e, actual, bool, env_varname2type
         )
         return isupdated_1 or isupdated_2
     elif isinstance(stmt, AssumeStmt):
         actual, isupdated_1 = resolve_expr_type(env_varname2type, stmt.e)
         _, isupdated_2 = check_and_update_varname2type(
-            stmt.e, actual, TypeBOOL, env_varname2type
+            stmt.e, actual, bool, env_varname2type
         )
         return isupdated_1 or isupdated_2
     elif isinstance(stmt, WhileStmt):
         actual, isupdated = resolve_expr_type(env_varname2type, stmt.cond)
         _, tmp_isupdated = check_and_update_varname2type(
-            stmt.cond, actual, TypeBOOL, env_varname2type
+            stmt.cond, actual, bool, env_varname2type
         )
         isupdated = isupdated or tmp_isupdated
         actual, tmp_isupdated_1 = resolve_expr_type(env_varname2type, stmt.invariant)
         _, tmp_isupdated_2 = check_and_update_varname2type(
-            stmt.invariant, actual, TypeBOOL, env_varname2type
+            stmt.invariant, actual, bool, env_varname2type
         )
         isupdated = isupdated or tmp_isupdated_1 or tmp_isupdated_2
         _isupdated = resolve_stmt_type(env_varname2type, stmt.body)

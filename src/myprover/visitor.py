@@ -23,7 +23,6 @@ from .claim import (
     VarExpr,
     WhileStmt,
 )
-from .type import TypeBOOL, TypeINT
 
 
 def is_invariant(y):
@@ -277,9 +276,9 @@ class ClaimToZ3:
             raise NotImplementedError(f"{node.op} is not supported")
 
     def visit_Quantification(self, node):
-        if node.var_type == TypeINT:
+        if node.var_type == int:
             z3_var = z3.Int(node.var.name)
-        elif node.var_type == TypeBOOL:
+        elif node.var_type == bool:
             z3_var = z3.Bool(node.var.name)
         else:
             raise NotImplementedError(f"{node.var_type} is not supported")

@@ -10,23 +10,23 @@ def test_resolve_expr_type():
     import myprover as mp
 
     assert mp.resolve_expr_type({}, mp.claim.LiteralExpr(mp.claim.BoolValue(True))) == (
-        mp.type.TypeBOOL,
+        bool,
         False,
     )
     assert mp.resolve_expr_type(
         {}, mp.claim.LiteralExpr(mp.claim.BoolValue(False))
     ) == (
-        mp.type.TypeBOOL,
+        bool,
         False,
     )
 
     assert mp.resolve_expr_type({}, mp.claim.LiteralExpr(mp.claim.IntValue(1))) == (
-        mp.type.TypeINT,
+        int,
         False,
     )
 
-    assert mp.resolve_expr_type({"x": mp.type.TypeINT}, mp.claim.VarExpr("x")) == (
-        mp.type.TypeINT,
+    assert mp.resolve_expr_type({"x": int}, mp.claim.VarExpr("x")) == (
+        int,
         False,
     )
     with pytest.raises(NotImplementedError):
@@ -37,14 +37,14 @@ def test_resolve_expr_type():
         mp.claim.UnOpExpr(
             mp.claim.Op.Not, mp.claim.LiteralExpr(mp.claim.BoolValue(True))
         ),
-    ) == (mp.type.TypeBOOL, False)
+    ) == (bool, False)
 
     assert mp.resolve_expr_type(
         {},
         mp.claim.UnOpExpr(
             mp.claim.Op.Minus, mp.claim.LiteralExpr(mp.claim.IntValue(1))
         ),
-    ) == (mp.type.TypeINT, False)
+    ) == (int, False)
 
     assert mp.resolve_expr_type(
         {},
@@ -53,7 +53,7 @@ def test_resolve_expr_type():
             mp.claim.Op.Add,
             mp.claim.LiteralExpr(mp.claim.IntValue(2)),
         ),
-    ) == (mp.type.TypeINT, False)
+    ) == (int, False)
 
     assert mp.resolve_expr_type(
         {},
@@ -62,7 +62,7 @@ def test_resolve_expr_type():
             mp.claim.Op.Eq,
             mp.claim.LiteralExpr(mp.claim.IntValue(2)),
         ),
-    ) == (mp.type.TypeBOOL, False)
+    ) == (bool, False)
 
     assert mp.resolve_expr_type(
         {},
@@ -71,7 +71,7 @@ def test_resolve_expr_type():
             mp.claim.Op.And,
             mp.claim.LiteralExpr(mp.claim.BoolValue(False)),
         ),
-    ) == (mp.type.TypeBOOL, False)
+    ) == (bool, False)
 
     assert (
         mp.resolve_expr_type(
@@ -81,7 +81,7 @@ def test_resolve_expr_type():
                 mp.claim.LiteralExpr(mp.claim.IntValue(10)),
             ),
         )
-    ) == (mp.type.TypeSLICE, False)
+    ) == (None, False)
 
     assert mp.resolve_expr_type(
         {},
@@ -89,9 +89,9 @@ def test_resolve_expr_type():
             "FORALL",
             mp.claim.VarExpr("x"),
             mp.claim.LiteralExpr(mp.claim.BoolValue(True)),
-            mp.type.TypeINT,
+            int,
         ),
-    ) == (mp.type.TypeBOOL, True)
+    ) == (bool, True)
 
     with pytest.raises(TypeError):
         mp.resolve_expr_type(
@@ -105,13 +105,13 @@ def test_resolve_expr_type():
         )
 
     assert mp.resolve_expr_type(
-        {"x": mp.type.TypeINT},
+        {"x": int},
         mp.claim.BinOpExpr(
             mp.claim.VarExpr("x"),
             mp.claim.Op.Mult,
             mp.claim.LiteralExpr(mp.claim.IntValue(2)),
         ),
-    ) == (mp.type.TypeINT, False)
+    ) == (int, False)
 
 
 def test_resolve_stmt_type():
@@ -136,9 +136,9 @@ def test_resolve_stmt_type():
         ),
     )
     assert len(env_varname2type) == 1
-    assert env_varname2type["x"] == mp.type.TypeINT
+    assert env_varname2type["x"] == int
 
-    env_varname2type = {"x": mp.type.TypeINT}
+    env_varname2type = {"x": int}
     assert not mp.type.resolve_stmt_type(
         env_varname2type,
         mp.claim.AssignStmt(
@@ -146,7 +146,7 @@ def test_resolve_stmt_type():
         ),
     )
 
-    env_varname2type = {"x": mp.type.TypeANY}
+    env_varname2type = {"x": None}
     assert mp.type.resolve_stmt_type(
         env_varname2type,
         mp.claim.AssignStmt(
@@ -154,9 +154,9 @@ def test_resolve_stmt_type():
         ),
     )
     assert len(env_varname2type) == 1
-    assert env_varname2type["x"] == mp.type.TypeINT
+    assert env_varname2type["x"] == int
 
-    env_varname2type = {"x": mp.type.TypeBOOL}
+    env_varname2type = {"x": bool}
     with pytest.raises(TypeError):
         mp.type.resolve_stmt_type(
             env_varname2type,
@@ -204,4 +204,4 @@ def test_resolve_stmt_type():
         ),
     )
     assert len(env_varname2type) == 1
-    assert env_varname2type["x"] == mp.type.TypeINT
+    assert env_varname2type["x"] == int

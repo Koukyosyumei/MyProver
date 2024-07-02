@@ -12,11 +12,11 @@ import myprover as mp
 def prover():
     p = mp.MyProver()
     p.fname2var_types = {
-        "simple_func": {"x": mp.type.TypeINT, "y": mp.type.TypeINT},
+        "simple_func": {"x": int, "y": int},
         "complex_func": {
-            "x": mp.type.TypeINT,
-            "y": mp.type.TypeINT,
-            "z": mp.type.TypeBOOL,
+            "x": int,
+            "y": int,
+            "z": bool,
         },
     }
     return p
@@ -96,7 +96,7 @@ def test_verify_func_with_nested_conditions(prover):
             result = x + y
         return result
 
-    prover.fname2var_types["nested_func"] = {"x": mp.type.TypeINT, "y": mp.type.TypeINT}
+    prover.fname2var_types["nested_func"] = {"x": int, "y": int}
     precond = "x >= 0"
     postcond = "(x > 0 and result == x - y) or (x <= 0 and result == x + y)"
     assert prover.verify_func(nested_func, precond, postcond)
@@ -111,9 +111,9 @@ def test_verify_func_with_bool_var(prover):
         return result
 
     prover.fname2var_types["bool_func"] = {
-        "x": mp.type.TypeINT,
-        "y": mp.type.TypeINT,
-        "z": mp.type.TypeBOOL,
+        "x": int,
+        "y": int,
+        "z": bool,
     }
     precond = "z and True"
     postcond = "result == x + y"
@@ -124,7 +124,7 @@ def test_verify_func_with_unhandled_type(prover):
     def unhandled_func(x):
         return x
 
-    prover.fname2var_types["unhandled_func"] = {"x": mp.type.TypeINT}
+    prover.fname2var_types["unhandled_func"] = {"x": int}
     precond = "True"
     postcond = "result == x"
     with pytest.raises(NotImplementedError):
@@ -136,7 +136,7 @@ def test_verify_func_with_assert_stmt(prover):
         assert x > 0
         return x
 
-    prover.fname2var_types["assert_func"] = {"x": mp.type.TypeINT}
+    prover.fname2var_types["assert_func"] = {"x": int}
     precond = "x > 0"
     postcond = "x >= 0"
     assert prover.verify_func(assert_func, precond, postcond)
@@ -147,7 +147,7 @@ def test_verify_func_with_assume_stmt(prover):
         assume("x > 0")
         return x
 
-    prover.fname2var_types["assume_func"] = {"x": mp.type.TypeINT}
+    prover.fname2var_types["assume_func"] = {"x": int}
     precond = "True"
     postcond = "x >= 1"
     assert prover.verify_func(assume_func, precond, postcond)
@@ -160,7 +160,7 @@ def test_while_with_false_invariant(prover):
             x = x - 1
         return x
 
-    prover.fname2var_types["func"] = {"x": mp.type.TypeINT}
+    prover.fname2var_types["func"] = {"x": int}
     precond = "x >= 0"
     postcond = "x == -1"
     with pytest.raises(RuntimeError):
@@ -177,9 +177,9 @@ def test_while_with_invariant(prover):
             res = res + 1
 
     prover.fname2var_types["func"] = {
-        "M": mp.type.TypeINT,
-        "N": mp.type.TypeINT,
-        "res": mp.type.TypeINT,
+        "M": int,
+        "N": int,
+        "res": int,
     }
     precond = "N > 0 and M >= 0"
     postcond = "M == res * N + m"
@@ -196,7 +196,7 @@ def test_while_with_multiple_invariants(prover):
             i = i + 1
 
     prover.fname2var_types["cumsum"] = {
-        "n": mp.type.TypeINT,
+        "n": int,
     }
     precond = "n >= 0"
     postcond = "r == n * (n + 1) // 2"

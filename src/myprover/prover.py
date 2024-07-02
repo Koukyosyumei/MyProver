@@ -11,8 +11,6 @@ from .claim import (
 )
 from .hoare import derive_weakest_precondition, encode_while_loop
 from .type import (
-    TypeBOOL,
-    TypeINT,
     check_and_update_varname2type,
     resolve_expr_type,
     resolve_stmt_type,
@@ -63,13 +61,13 @@ class MyProver:
         resolve_stmt_type(self.fname2var_types[func.__name__], claim_ast)
         actual, _ = resolve_expr_type(self.fname2var_types[func.__name__], precond_expr)
         check_and_update_varname2type(
-            precond_expr, actual, TypeBOOL, self.fname2var_types[func.__name__]
+            precond_expr, actual, bool, self.fname2var_types[func.__name__]
         )
         actual, _ = resolve_expr_type(
             self.fname2var_types[func.__name__], postcond_expr
         )
         check_and_update_varname2type(
-            postcond_expr, actual, TypeBOOL, self.fname2var_types[func.__name__]
+            postcond_expr, actual, bool, self.fname2var_types[func.__name__]
         )
 
         conditions_for_invariants = []
@@ -96,9 +94,9 @@ class MyProver:
 
         z3_env_varname2type = {}
         for n, t in self.fname2var_types[func.__name__].items():
-            if t == TypeINT:
+            if t == int:
                 z3_env_varname2type[n] = z3.Int(n)
-            elif t == TypeBOOL:
+            elif t == bool:
                 z3_env_varname2type[n] = z3.Bool(n)
 
         solver = z3.Solver()
