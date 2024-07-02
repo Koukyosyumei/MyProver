@@ -11,6 +11,7 @@ from .type import (
     resolve_stmt_type,
 )
 from .visitor import ClaimToZ3, PyToClaim
+from .exception import InvalidInvariantError, VerificationFailureError
 
 
 class MyProver:
@@ -81,6 +82,8 @@ class MyProver:
             conditions_for_invariants = [
                 BinOpExpr(precond_expr, Op.Implies, wpi)
             ] + list(aci)
+            for c in conditions_for_invariants:
+                c._is_expr_to_verify_invriant = True
 
         wp, ac = derive_weakest_precondition(
             claim_ast, postcond_expr, self.sname2var_types[scope_name]
@@ -108,7 +111,10 @@ class MyProver:
             result = solver.check()
             if str(result) == "sat":
                 model = solver.model()
-                raise RuntimeError(f"Found a violoated condition: {z3_cond} - {model}")
+                if cond._is_expr_to_verify_invriant:
+                    raise InvalidInvariantError(f"Invalid invariant is specified: {z3_cond} - {model}")
+                else:
+                    raise VerificationFailureError(f"Found a violoated condition: {z3_cond} - {model}")
             solver.pop()
 
         return True

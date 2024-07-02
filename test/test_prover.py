@@ -44,7 +44,7 @@ def test_verify_simple_func_valid(prover):
 def test_verify_simple_func_invalid(prover):
     precond = "x >= 0 and y >= 0"
     postcond = "result < 0"
-    with pytest.raises(RuntimeError):
+    with pytest.raises(mp.VerificationFailureError):
         verify_func(prover, simple_func, precond, postcond)
 
 
@@ -67,7 +67,7 @@ def test_verify_complex_func_invalid(prover):
     # Note: Currently, we do not support `z == False`.
     precond = "x >= 0 and y >= 0 and (not z)"
     postcond = "result < 0"
-    with pytest.raises(RuntimeError):
+    with pytest.raises(mp.VerificationFailureError):
         verify_func(prover, complex_func, precond, postcond)
 
 
@@ -80,7 +80,7 @@ def test_verify_with_no_precond(prover):
 def test_verify_with_false_postcond(prover):
     precond = "x >= 0 and y >= 0"
     postcond = "False"
-    with pytest.raises(RuntimeError):
+    with pytest.raises(mp.VerificationFailureError):
         verify_func(prover, simple_func, precond, postcond)
 
 
@@ -171,7 +171,7 @@ def test_while_with_false_invariant(prover):
     prover.sname2var_types["func"] = {"x": int}
     precond = "x >= 0"
     postcond = "x == -1"
-    with pytest.raises(RuntimeError):
+    with pytest.raises(mp.VerificationFailureError):
         verify_func(prover, func, precond, postcond)
 
 
@@ -192,6 +192,25 @@ def test_while_with_invariant(prover):
     precond = "N > 0 and M >= 0"
     postcond = "M == res * N + m"
     assert verify_func(prover, func, precond, postcond, False)
+
+def test_while_with_invalid_invariant(prover):
+    def func(M, N):
+        res = 0
+        m = M
+        while m >= N:
+            invariant("M == res * N + m + 1")
+            m = m - N
+            res = res + 1
+
+    prover.sname2var_types["func"] = {
+        "M": int,
+        "N": int,
+        "res": int,
+    }
+    precond = "N > 0 and M >= 0"
+    postcond = "M == res * N + m"
+    with pytest.raises(mp.InvalidInvariantError):
+        verify_func(prover, func, precond, postcond, False)
 
 
 def test_while_with_multiple_invariants(prover):
