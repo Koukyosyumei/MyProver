@@ -7,7 +7,7 @@ import pytest
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
 
 import myprover as mp
-from myprover import assume, invariant
+from myprover import assume, invariant, precondition, postcondition, prove
 
 
 @pytest.fixture
@@ -176,6 +176,8 @@ def test_while_with_false_invariant(prover):
 
 
 def test_while_with_invariant(prover):
+    @precondition("N > 0 and M >= 0")
+    @postcondition("M == res * N + m")
     def func(M, N):
         res = 0
         m = M
@@ -184,20 +186,20 @@ def test_while_with_invariant(prover):
             m = m - N
             res = res + 1
 
-    prover.register(
-        "func",
+    assert prove(
+        func,
         {
             "M": int,
             "N": int,
             "res": int,
         },
-    )
-    precond = "N > 0 and M >= 0"
-    postcond = "M == res * N + m"
-    assert verify_func(prover, func, precond, postcond, False)
+        False,
+    )[0]
 
 
-def test_while_with_invalid_invariant(prover):
+def test_while_with_invalid_invariant():
+    @precondition("N > 0 and M >= 0")
+    @postcondition("M == res * N + m")
     def func(M, N):
         res = 0
         m = M
@@ -206,21 +208,21 @@ def test_while_with_invalid_invariant(prover):
             m = m - N
             res = res + 1
 
-    prover.register(
-        "func",
-        {
-            "M": int,
-            "N": int,
-            "res": int,
-        },
-    )
-    precond = "N > 0 and M >= 0"
-    postcond = "M == res * N + m"
     with pytest.raises(mp.InvalidInvariantError):
-        verify_func(prover, func, precond, postcond, False)
+        prove(
+            func,
+            {
+                "M": int,
+                "N": int,
+                "res": int,
+            },
+            False,
+        )[0]
 
 
-def test_while_with_multiple_invariants(prover):
+def test_while_with_multiple_invariants():
+    @precondition("n >= 0")
+    @postcondition("r == n * (n + 1) // 2")
     def cumsum(n):
         i = 1
         r = 0
@@ -230,7 +232,4 @@ def test_while_with_multiple_invariants(prover):
             r = r + i
             i = i + 1
 
-    prover.register("cumsum", {"n": int})
-    precond = "n >= 0"
-    postcond = "r == n * (n + 1) // 2"
-    assert verify_func(prover, cumsum, precond, postcond, False)
+    assert prove(cumsum, {"n": int}, False)[0]

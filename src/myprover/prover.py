@@ -51,8 +51,6 @@ class MyProver:
         Raises:
             RuntimeError: If a violated condition is found during verification.
         """
-        # code = inspect.getsource(func)
-        # code = code.lstrip()
         py_ast = ast.parse(code_str)
         claim_ast = PyToClaim().visit(py_ast)
 
@@ -121,3 +119,13 @@ class MyProver:
             solver.pop()
 
         return True
+
+
+def prove(func, varname2types=None, skip_inv=True):
+    precond = getattr(func, "_precondition", "True")
+    postcond = getattr(func, "_postcondition", "True")
+    code = inspect.getsource(func)
+    code = ("\n".join(code.split("\n")[2:])).lstrip()
+    prover = MyProver()
+    prover.register(func.__name__, varname2types)
+    return prover.verify(code, func.__name__, precond, postcond, skip_inv), prover

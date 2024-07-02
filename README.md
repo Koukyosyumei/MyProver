@@ -1,10 +1,12 @@
 # MyProver
 
 ```python
-from myprover import MyProver, invariant, assume
+from myprover import invariant, precondition, postcondition, prove
 
 
-def func(n):
+@precondition("n >= 0")
+@postcondition("r == n * (n + 1) // 2")
+def cumsum(n):
     i = 1
     r = 0
     while i <= n:
@@ -13,13 +15,5 @@ def func(n):
         r = r + i
         i = i + 1
 
-code = inspect.getsource(func)
-code = code.lstrip()
-
-precond = "n >= 0"
-postcond = "r == n * (n + 1) // 2"
-
-prover = MyProver()
-prover.register("func", {"n": int})
-assert prover.verify(func, "func", precond, postcond)
+assert prove(cumsum, {"n": int}, False)[0]
 ```
