@@ -28,8 +28,13 @@ class MyProver:
         self.sname2var_types = {}
 
     def verify(
-        self, code_str: str, scope_name: str, precond_str: str, postcond_str: str, skip_verification_of_invariant: bool =True
-    ):
+        self,
+        code_str: str,
+        scope_name: str,
+        precond_str: str,
+        postcond_str: str,
+        skip_verification_of_invariant: bool = True,
+    ) -> bool:
         """
         Verifies the correctness of a function based on the given precondition and postcondition strings.
 
@@ -59,9 +64,7 @@ class MyProver:
         check_and_update_varname2type(
             precond_expr, actual, bool, self.sname2var_types[scope_name]
         )
-        actual, _ = resolve_expr_type(
-            self.sname2var_types[scope_name], postcond_expr
-        )
+        actual, _ = resolve_expr_type(self.sname2var_types[scope_name], postcond_expr)
         check_and_update_varname2type(
             postcond_expr, actual, bool, self.sname2var_types[scope_name]
         )

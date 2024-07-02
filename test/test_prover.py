@@ -27,10 +27,11 @@ def simple_func(x, y):
     result = x + y
     return result
 
+
 def verify_func(prover, func, precond, postcond, skip_inv=True):
     code = inspect.getsource(func)
     code = code.lstrip()
-    return prover.verify(code, func.__name__, precond, postcond, skip_inv)  
+    return prover.verify(code, func.__name__, precond, postcond, skip_inv)
 
 
 def test_verify_simple_func_valid(prover):

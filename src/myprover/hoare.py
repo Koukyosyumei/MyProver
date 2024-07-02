@@ -19,7 +19,9 @@ from .claim import (
 )
 
 
-def derive_weakest_precondition(command_stmt: Stmt, post_condition: Expr, var2type):
+def derive_weakest_precondition(
+    command_stmt: Stmt, post_condition: Expr, var2type: dict[str, type]
+):
     """Computes the weakest precondition necessary to meet the post_condition after executing the command_stmt.
 
     Given a command statement `command_stmt` and a post-condition `post_condition`, this function calculates
