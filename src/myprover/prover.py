@@ -4,14 +4,10 @@ import inspect
 import z3
 
 from .claim import BinOpExpr, ClaimParser, Op, UnOpExpr
-from .hoare import derive_weakest_precondition, encode_while_loop
-from .type import (
-    check_and_update_varname2type,
-    resolve_expr_type,
-    resolve_stmt_type,
-)
-from .visitor import ClaimToZ3, PyToClaim
 from .exception import InvalidInvariantError, VerificationFailureError
+from .hoare import derive_weakest_precondition, encode_while_loop
+from .type import check_and_update_varname2type, resolve_expr_type, resolve_stmt_type
+from .visitor import ClaimToZ3, PyToClaim
 
 
 class MyProver:
@@ -27,6 +23,9 @@ class MyProver:
         Initializes the MyProver instance with an empty dictionary for scope name to variable types mapping.
         """
         self.sname2var_types = {}
+
+    def register(self, scope_name: str, var2types: dict[str, type]) -> None:
+        self.sname2var_types[scope_name] = var2types
 
     def verify(
         self,
@@ -112,9 +111,13 @@ class MyProver:
             if str(result) == "sat":
                 model = solver.model()
                 if cond._is_expr_to_verify_invriant:
-                    raise InvalidInvariantError(f"Invalid invariant is specified: {z3_cond} - {model}")
+                    raise InvalidInvariantError(
+                        f"Invalid invariant is specified: {z3_cond} - {model}"
+                    )
                 else:
-                    raise VerificationFailureError(f"Found a violoated condition: {z3_cond} - {model}")
+                    raise VerificationFailureError(
+                        f"Found a violoated condition: {z3_cond} - {model}"
+                    )
             solver.pop()
 
         return True

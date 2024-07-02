@@ -7,6 +7,7 @@ from .claim import (
     BinOpExpr,
     BoolValue,
     CompoundStmt,
+    Expr,
     HavocStmt,
     IfElseStmt,
     IntValue,
@@ -19,7 +20,6 @@ from .claim import (
     UnOpExpr,
     VarExpr,
     WhileStmt,
-    Expr,
 )
 
 

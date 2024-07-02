@@ -1,13 +1,13 @@
+import inspect
 import os
 import sys
-import inspect
 
 import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
 
 import myprover as mp
-from myprover import invariant, assume
+from myprover import assume, invariant
 
 
 @pytest.fixture
@@ -184,14 +184,18 @@ def test_while_with_invariant(prover):
             m = m - N
             res = res + 1
 
-    prover.sname2var_types["func"] = {
-        "M": int,
-        "N": int,
-        "res": int,
-    }
+    prover.register(
+        "func",
+        {
+            "M": int,
+            "N": int,
+            "res": int,
+        },
+    )
     precond = "N > 0 and M >= 0"
     postcond = "M == res * N + m"
     assert verify_func(prover, func, precond, postcond, False)
+
 
 def test_while_with_invalid_invariant(prover):
     def func(M, N):
@@ -202,11 +206,14 @@ def test_while_with_invalid_invariant(prover):
             m = m - N
             res = res + 1
 
-    prover.sname2var_types["func"] = {
-        "M": int,
-        "N": int,
-        "res": int,
-    }
+    prover.register(
+        "func",
+        {
+            "M": int,
+            "N": int,
+            "res": int,
+        },
+    )
     precond = "N > 0 and M >= 0"
     postcond = "M == res * N + m"
     with pytest.raises(mp.InvalidInvariantError):
@@ -223,9 +230,7 @@ def test_while_with_multiple_invariants(prover):
             r = r + i
             i = i + 1
 
-    prover.sname2var_types["cumsum"] = {
-        "n": int,
-    }
+    prover.register("cumsum", {"n": int})
     precond = "n >= 0"
     postcond = "r == n * (n + 1) // 2"
     assert verify_func(prover, cumsum, precond, postcond, False)
