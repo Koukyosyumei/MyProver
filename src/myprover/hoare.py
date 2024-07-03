@@ -103,10 +103,10 @@ def derive_weakest_precondition(
         return (
             QuantificationExpr(
                 "FORALL",
-                VarExpr(command_stmt.var_name + f"${command_stmt.num_havoced}"),
+                VarExpr(command_stmt.var_name + f"@{command_stmt.num_havoced}"),
                 post_condition.assign_variable(
                     VarExpr(command_stmt.var_name),
-                    VarExpr(command_stmt.var_name + f"${command_stmt.num_havoced}"),
+                    VarExpr(command_stmt.var_name + f"@{command_stmt.num_havoced}"),
                 ),
                 var2type[command_stmt.var_name],
             ),
@@ -175,7 +175,7 @@ def encode_while_loop(stmt: Stmt, var2numhavoc: dict[str, int]):
         for i in range(len(after_havoc_stmts)):
             for h in havocs:
                 after_havoc_stmts[i] = after_havoc_stmts[i].assign_variable(
-                    VarExpr(h.var_name), VarExpr(h.var_name + f"${h.num_havoced}")
+                    VarExpr(h.var_name), VarExpr(h.var_name + f"@{h.num_havoced}")
                 )
 
         encoded_loop_items = [
@@ -189,7 +189,7 @@ def encode_while_loop(stmt: Stmt, var2numhavoc: dict[str, int]):
         havoced_invariant = stmt.invariant.clone()
         for h in havocs:
             havoced_invariant = havoced_invariant.assign_variable(
-                VarExpr(h.var_name), VarExpr(h.var_name + f"${h.num_havoced}")
+                VarExpr(h.var_name), VarExpr(h.var_name + f"@{h.num_havoced}")
             )
 
         return s, {havoced_invariant}
