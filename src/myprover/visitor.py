@@ -21,6 +21,7 @@ from .claim import (
     SubscriptExpr,
     UnOpExpr,
     VarExpr,
+    DPAssignStmt,
     WhileStmt,
 )
 
@@ -188,10 +189,11 @@ class PyToClaim(ast.NodeVisitor):
 
     def visit_Assign(self, node):
         if isinstance(node.targets[0], ast.Subscript):
-            varname = self.visit(node.targets[0])
+            var = self.visit(node.targets[0])
         else:
             varname = node.targets[0].id
-        return AssignStmt(VarExpr(varname), self.visit(node.value))
+            var = VarExpr(varname)
+        return AssignStmt(var, self.visit(node.value))
 
     def visit_Return(self, node):
         return SkipStmt()
@@ -201,6 +203,144 @@ class PyToClaim(ast.NodeVisitor):
 
     def visit_Expr(self, node):
         return self.visit(node.value)
+
+
+class PyToDPClaim(PyToClaim):
+    def __init__(self, forked_vanames=set()):
+        super().__init__()
+        self.forked_varnames = forked_vanames
+
+    def visit_Call(self, node):
+        if node.func.id == "assume":
+            return AssumeStmt(ClaimParser(node.args[0].s).parse_expr())
+        elif node.func.id == "invariant":
+            return ClaimParser(node.args[0].s).parse_expr()
+        elif node.func.id == "laplace":
+            e = self.visit(node.args[0])
+            e_1 = e.clone()
+            e_2 = e.clone()
+            for vn in self.forked_varnames:
+                e_1 = e_1.assign_variable(VarExpr(vn), VarExpr(vn + "#1"))
+                e_2 = e_2.assign_variable(VarExpr(vn), VarExpr(vn + "#2"))
+            return DPAssignStmt(
+                VarExpr("v_eps#"),
+                BinOpExpr(
+                    VarExpr("v_eps#"),
+                    Op.Add,
+                    BinOpExpr(
+                        UnOpExpr(Op.Abs, BinOpExpr(e_1, Op.Minus, e_2)),
+                        Op.Mult,
+                        VarExpr("eps#"),
+                    ),
+                ),
+            )
+
+    def visit_If(self, node):
+        cond = self.visit(node.test)
+
+        cond_1 = cond.clone()
+        cond_2 = cond.clone()
+        for vn in self.forked_varnames:
+            cond_1 = cond_1.assign_variable(VarExpr(vn), VarExpr(vn + "#1"))
+            cond_2 = cond_2.assign_variable(VarExpr(vn), VarExpr(vn + "#2"))
+
+        then_branch = self.walk_seq(node.body)
+        rb = self.walk_seq(node.orelse)
+        return CompoundStmt(
+            AssertStmt(BinOpExpr(cond_1, Op.Iff, cond_2)),
+            IfElseStmt(cond_1, then_branch, rb),
+        )
+
+    def visit_While(self, node):
+        cond = self.visit(node.test)
+
+        cond_1 = cond.clone()
+        cond_2 = cond.clone()
+        for vn in self.forked_varnames:
+            cond_1 = cond_1.assign_variable(VarExpr(vn), VarExpr(vn + "#1"))
+            cond_2 = cond_2.assign_variable(VarExpr(vn), VarExpr(vn + "#2"))
+
+        invariants = [self.visit_Call(x.value) for x in filter(is_invariant, node.body)]
+        reduced_invariant = (
+            LiteralExpr(BoolValue(True))
+            if not invariants
+            else reduce(lambda i1, i2: BinOpExpr(i1, Op.And, i2), invariants)
+        )
+
+        body = self.walk_seq(
+            list(
+                filter(
+                    lambda x: (
+                        True
+                        if not isinstance(x, ast.Expr)
+                        or not isinstance(x.value, ast.Call)
+                        else x.value.func.id != "invariant"
+                    ),
+                    node.body,
+                )
+            )
+        )
+        body = CompoundStmt(body, AssertStmt(BinOpExpr(cond_1, Op.Iff, cond_2)))
+
+        return CompoundStmt(
+            AssertStmt(BinOpExpr(cond_1, Op.Iff, cond_2)),
+            WhileStmt(reduced_invariant, cond_1, body),
+        )
+
+    def visit_Assert(self, node):
+        return AssertStmt(self.visit(node.test))
+
+    def visit_Assign(self, node):
+        if isinstance(node.targets[0], ast.Subscript):
+            left_expr = self.visit(node.targets[0])
+            left_varname = left_expr.var.name
+        else:
+            left_varname = node.targets[0].id
+
+        right_expr = self.visit(node.value)
+        right_expr_1 = right_expr.clone()
+        right_expr_2 = right_expr.clone()
+        for vn in self.forked_varnames:
+            right_expr_1 = right_expr_1.assign_variable(VarExpr(vn), VarExpr(vn + "#1"))
+            right_expr_2 = right_expr_2.assign_variable(VarExpr(vn), VarExpr(vn + "#2"))
+
+        if isinstance(node.targets[0], ast.Subscript):
+            left_expr_1 = left_expr.clone()
+            left_expr_2 = left_expr.clone()
+            for vn in self.forked_varnames:
+                left_expr_1 = left_expr_1.assign_variable(
+                    VarExpr(vn), VarExpr(vn + "#1")
+                )
+                left_expr_2 = left_expr_2.assign_variable(
+                    VarExpr(vn), VarExpr(vn + "#2")
+                )
+
+            if isinstance(right_expr, DPAssignStmt):
+                return CompoundStmt(
+                    AssumeStmt(BinOpExpr(left_expr_1, Op.Eq, left_expr_2)), right_expr
+                )
+            else:
+                return CompoundStmt(
+                    AssignStmt(left_expr_1, right_expr_1),
+                    AssignStmt(left_expr_2, right_expr_2),
+                )
+        else:
+            if isinstance(right_expr, DPAssignStmt):
+                return CompoundStmt(
+                    AssumeStmt(
+                        BinOpExpr(
+                            VarExpr(left_varname + "#1"),
+                            Op.Eq,
+                            VarExpr(left_varname + "#2"),
+                        )
+                    ),
+                    right_expr,
+                )
+            else:
+                return CompoundStmt(
+                    AssignStmt(VarExpr(left_varname + "#1"), right_expr_1),
+                    AssignStmt(VarExpr(left_varname + "#2"), right_expr_2),
+                )
 
 
 class ClaimToZ3:
@@ -218,6 +358,8 @@ class ClaimToZ3:
             return self.visit_Unop(expr)
         elif isinstance(expr, QuantificationExpr):
             return self.visit_Quantification(expr)
+        elif isinstance(expr, SubscriptExpr):
+            return self.visit_Subscript(expr)
         else:
             raise NotImplementedError(f"`{type(expr)} is not supported")
 
@@ -225,7 +367,16 @@ class ClaimToZ3:
         return node.value.v
 
     def visit_Var(self, node):
-        return self.name_dict[node.name]
+        if node.name in self.name_dict:
+            return self.name_dict[node.name]
+        elif node.name.split("#")[0] in self.name_dict:
+            return self.name_dict[node.name.split("#")[0]]
+        else:
+            raise KeyError(f"{node.name} is unkonwn in name_dict when converting Claim to Z3")
+        # return self.name_dict[node.name]
+
+    def visit_Subscript(self, node):
+        return z3.Select(self.name_dict[node.var.name], self.visit(node.subscript))
 
     def visit_BinOp(self, node):
         c1 = self.visit(node.e1)
@@ -270,6 +421,8 @@ class ClaimToZ3:
             return -c
         elif node.op == Op.Not:
             return z3.Not(c)
+        elif node.op == Op.Abs:
+            return z3.If(c > 0, c, -c)
         else:
             raise NotImplementedError(f"{node.op} is not supported")
 
@@ -278,6 +431,8 @@ class ClaimToZ3:
             z3_var = z3.Int(node.var.name)
         elif node.var_type == bool:
             z3_var = z3.Bool(node.var.name)
+        elif node.var_type == list[int]:
+            z3_var = z3.Array(node.var.name, z3.IntSort(), z3.IntSort())
         else:
             raise NotImplementedError(f"{node.var_type} is not supported")
         self.name_dict[node.var.name] = z3_var

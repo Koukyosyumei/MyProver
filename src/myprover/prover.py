@@ -3,11 +3,11 @@ import inspect
 
 import z3
 
-from .claim import BinOpExpr, ClaimParser, Op, UnOpExpr
+from .claim import BinOpExpr, ClaimParser, Op, UnOpExpr, pretty_repr, CompoundStmt, AssignStmt, LiteralExpr, IntValue, VarExpr
 from .exception import InvalidInvariantError, VerificationFailureError
 from .hoare import derive_weakest_precondition, encode_while_loop
 from .type import check_and_update_varname2type, resolve_expr_type, resolve_stmt_type
-from .visitor import ClaimToZ3, PyToClaim
+from .visitor import ClaimToZ3, PyToClaim, PyToDPClaim
 
 
 class MyProver:
@@ -18,10 +18,11 @@ class MyProver:
         sname2var_types (dict): A dictionary mapping scope names to variable types.
     """
 
-    def __init__(self):
+    def __init__(self, dp_mode=False):
         """
         Initializes the MyProver instance with an empty dictionary for scope name to variable types mapping.
         """
+        self.dp_mode = dp_mode
         self.sname2var_types = {}
         self.varname2numhavoced = {}
 
@@ -53,7 +54,14 @@ class MyProver:
             RuntimeError: If a violated condition is found during verification.
         """
         py_ast = ast.parse(code_str)
+
         claim_ast = PyToClaim().visit(py_ast)
+
+        print(claim_ast.collect_assigned_varnames())
+        if self.dp_mode:
+            claim_ast = PyToDPClaim(claim_ast.collect_assigned_varnames()).visit(py_ast)
+            claim_ast = CompoundStmt(AssignStmt(VarExpr("v_eps#"), LiteralExpr(IntValue(0))), claim_ast)
+        print(pretty_repr(claim_ast))
 
         precond_expr = ClaimParser(precond_str).parse_expr()
         postcond_expr = ClaimParser(postcond_str).parse_expr()
@@ -98,8 +106,14 @@ class MyProver:
         for n, t in self.sname2var_types[scope_name].items():
             if t == int:
                 z3_env_varname2type[n] = z3.Int(n)
+                z3_env_varname2type[n + "#1"] = z3.Int(n + "#1")
+                z3_env_varname2type[n + "#2"] = z3.Int(n + "#2")
             elif t == bool:
                 z3_env_varname2type[n] = z3.Bool(n)
+                z3_env_varname2type[n + "#1"] = z3.Bool(n + "#1")
+                z3_env_varname2type[n + "#2"] = z3.Bool(n + "#2")
+            elif t == list[int]:
+                z3_env_varname2type[n] = z3.Array(n, z3.IntSort(), z3.IntSort())
 
         solver = z3.Solver()
         converter = ClaimToZ3(z3_env_varname2type)

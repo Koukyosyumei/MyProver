@@ -19,11 +19,15 @@ from .claim import (
 )
 
 
-def assume():
+def assume(cond):
     pass
 
 
-def invariant():
+def invariant(cond):
+    pass
+
+
+def laplace(mu):
     pass
 
 

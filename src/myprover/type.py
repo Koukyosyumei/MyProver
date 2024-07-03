@@ -1,4 +1,5 @@
 from abc import ABCMeta
+import typing
 
 from .claim import (
     AssertStmt,
@@ -20,6 +21,7 @@ from .claim import (
     UnOpExpr,
     VarExpr,
     WhileStmt,
+    SubscriptExpr,
 )
 
 
@@ -46,9 +48,21 @@ def check_and_update_varname2type(
     elif actual == expected:
         # TODO: support subtype
         return actual, False
+    elif expected is None:
+        return actual, False
     else:
         raise TypeError(f"Expected Type:{expected}, Actual Type:{actual}")
 
+
+def get_expr_type(expr, env, default):
+    if isinstance(expr, VarExpr):
+        if expr.name in env:
+            return env[expr.name]
+        elif expr.name.split("#")[0] in env:
+            return env[expr.name.split("#")[0]]
+    else:
+        return default
+    
 
 def resolve_expr_type(
     env_varname2type: dict[str, type], expr: Expr
@@ -72,9 +86,15 @@ def resolve_expr_type(
             return int, False
         else:
             raise NotImplementedError(f"{type(expr.value)} is not supported")
+    elif isinstance(expr, SubscriptExpr):
+        return typing.get_args(env_varname2type[expr.var.name])[0], False
     elif isinstance(expr, VarExpr):
         if env_varname2type is not None and expr.name in env_varname2type:
             return env_varname2type[expr.name], False
+        elif (
+            env_varname2type is not None and expr.name.split("#")[0] in env_varname2type
+        ):
+            return env_varname2type[expr.name.split("#")[0]], False
         else:
             raise NotImplementedError(f"Type of the variable `{expr.name}` is unkonwn")
     elif isinstance(expr, UnOpExpr):
@@ -82,6 +102,9 @@ def resolve_expr_type(
             actual, isupdated_e = resolve_expr_type(env_varname2type, expr.e)
             expected = bool
         elif expr.op == Op.Minus:
+            actual, isupdated_e = resolve_expr_type(env_varname2type, expr.e)
+            expected = int
+        elif expr.op == Op.Abs:
             actual, isupdated_e = resolve_expr_type(env_varname2type, expr.e)
             expected = int
         type_expr, isupdated_expr = check_and_update_varname2type(
@@ -92,12 +115,14 @@ def resolve_expr_type(
     elif isinstance(expr, BinOpExpr):
         if expr.op.value.isArith:
             actual, isupdated_e1_1 = resolve_expr_type(env_varname2type, expr.e1)
+            expected = get_expr_type(expr.e1, env_varname2type, int)
             _, isupdated_e1_2 = check_and_update_varname2type(
-                expr.e1, actual, int, env_varname2type
+                expr.e1, actual, expected, env_varname2type
             )
             actual, isupdated_e2_1 = resolve_expr_type(env_varname2type, expr.e2)
+            expected = get_expr_type(expr.e2, env_varname2type, int)
             type_e2, isupdated_e2_2 = check_and_update_varname2type(
-                expr.e2, actual, int, env_varname2type
+                expr.e2, actual, expected, env_varname2type
             )
             return (
                 type_e2,
@@ -105,12 +130,14 @@ def resolve_expr_type(
             )
         elif expr.op.value.isComp:
             actual, isupdated_e1_1 = resolve_expr_type(env_varname2type, expr.e1)
+            expected = get_expr_type(expr.e1, env_varname2type, int)
             _, isupdated_e1_2 = check_and_update_varname2type(
-                expr.e1, actual, int, env_varname2type
+                expr.e1, actual, expected, env_varname2type
             )
             actual, isupdated_e2_1 = resolve_expr_type(env_varname2type, expr.e2)
+            expected = get_expr_type(expr.e2, env_varname2type, int)
             _, isupdated_e2_2 = check_and_update_varname2type(
-                expr.e2, actual, int, env_varname2type
+                expr.e2, actual, expected, env_varname2type
             )
             return (
                 bool,
@@ -118,12 +145,14 @@ def resolve_expr_type(
             )
         elif expr.op.value.isBool:
             actual, isupdated_e1_1 = resolve_expr_type(env_varname2type, expr.e1)
+            expected = get_expr_type(expr.e1, env_varname2type, bool)
             _, isupdated_e1_2 = check_and_update_varname2type(
-                expr.e1, actual, bool, env_varname2type
+                expr.e1, actual, expected, env_varname2type
             )
             actual, isupdated_e2_1 = resolve_expr_type(env_varname2type, expr.e2)
+            expected = get_expr_type(expr.e2, env_varname2type, bool)
             type_e2, isupdated_e2_2 = check_and_update_varname2type(
-                expr.e2, actual, bool, env_varname2type
+                expr.e2, actual, expected, env_varname2type
             )
             return (
                 type_e2,
@@ -198,15 +227,25 @@ def resolve_stmt_type(env_varname2type: dict[str, type], stmt: Stmt) -> bool:
         return isupdated_s1 or isupdated_s2
     elif isinstance(stmt, AssignStmt):
         type_of_expr, isupdated = resolve_expr_type(env_varname2type, stmt.expr)
-        if stmt.var.name not in env_varname2type:
-            env_varname2type[stmt.var.name] = type_of_expr
+        var_name = stmt.var.name if isinstance(stmt.var, VarExpr) else stmt.var.var.name
+        if var_name not in env_varname2type:
+            env_varname2type[var_name] = type_of_expr
             return True
         else:
-            if env_varname2type[stmt.var.name] == None:
-                env_varname2type[stmt.var.name] = type_of_expr
+            if env_varname2type[var_name] == None:
+                env_varname2type[var_name] = type_of_expr
                 return True
-            elif env_varname2type[stmt.var.name] != type_of_expr:
-                raise TypeError(f"Type Mismatch of {stmt.var}")
+            elif isinstance(stmt.var, SubscriptExpr):
+                if typing.get_args(env_varname2type[var_name])[0] == type_of_expr:
+                    return True
+                else:
+                    raise TypeError(
+                        f"Type Mismatch of {var_name}: left={typing.get_args(env_varname2type[var_name])[0]}, right={type_of_expr}"
+                    )
+            elif env_varname2type[var_name] != type_of_expr:
+                raise TypeError(
+                    f"Type Mismatch of {var_name}: left={env_varname2type[var_name]}, right={type_of_expr}"
+                )
             else:
                 return isupdated
     elif isinstance(stmt, IfElseStmt):

@@ -67,14 +67,17 @@ class VarExpr(Expr):
         """Assign a new variable in place of an old variable in the variable expression.
 
         Args:
-            old_var (VarExpr): The variable to be replaced.
-            new_var (VarExpr): The variable to replace with.
+            old_var (Expr): The variable to be replaced.
+            new_var (Expr): The variable to replace with.
 
         Returns:
             VarExpr: The updated variable expression.
         """
-        if self.name == old_var.name:
-            return new_var
+        if isinstance(old_var, VarExpr):
+            if self.name == old_var.name:
+                return new_var
+            else:
+                return self
         else:
             return self
 
@@ -134,6 +137,7 @@ class SubscriptExpr(Expr):
         super().__init__()
         self.var = var
         self.subscript = subscript
+        self.assign={}
 
     def __repr__(self):
         return f"(Subscript {self.var} {self.subscript})"

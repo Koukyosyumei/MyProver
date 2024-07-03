@@ -100,7 +100,7 @@ class AssignStmt(Stmt):
         Returns:
             set: A set of variable names in the assignment statement.
         """
-        return {self.var.name}
+        return self.var.collect_varnames()
 
     def collect_havoced_varnames(self):
         return set()
@@ -122,6 +122,10 @@ class AssignStmt(Stmt):
 
     def clone(self):
         return AssignStmt(self.var.clone(), self.expr.clone())
+
+
+class DPAssignStmt(AssignStmt):
+    pass
 
 
 class IfElseStmt(Stmt):
@@ -387,3 +391,31 @@ class HavocStmt(Stmt):
 
     def clone(self):
         return HavocStmt(self.var_name)
+
+
+def pretty_repr(stmt, level=0):
+    if isinstance(stmt, IfElseStmt):
+        return (
+            "\t" * level
+            + f"if ({stmt.cond})"
+            + "\n"
+            + pretty_repr(stmt.then_branch, level + 1)
+            + ";\n"
+            + "\t" * level
+            + "ELSE\n"
+            + pretty_repr(stmt.else_branch, level + 1)
+        )
+    elif isinstance(stmt, WhileStmt):
+        return (
+            "\t" * level
+            + f"while ({stmt.cond})"
+            + "\n"
+            + "\t" * (level + 1)
+            + f"@invariant: {stmt.invariant}"
+            + ";\n"
+            + pretty_repr(stmt.body, level + 1)
+        )
+    elif isinstance(stmt, CompoundStmt):
+        return pretty_repr(stmt.s1, level) + ";\n" + pretty_repr(stmt.s2, level)
+    else:
+        return "\t" * level + str(stmt)

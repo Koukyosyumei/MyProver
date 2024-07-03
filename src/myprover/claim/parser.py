@@ -42,6 +42,7 @@ token_specification = [
     ("MULT", r"\*"),
     ("DIV", r"/"),
     ("MOD", r"%"),
+    ("ABS", r"\|\|"),
     ("AND", r"\band\b"),
     ("OR", r"\bor\b"),
     ("NOT", r"\bnot\b"),
@@ -62,7 +63,7 @@ token_specification = [
     ("COMMA", r","),
     ("DOUBLECOLON", r"::"),
     ("COLON", r":"),
-    ("VAR", r"[A-Za-z_]\w*"),
+    ("VAR", r"[A-Za-z_][\w#]*"),
     ("WHITESPACE", r"\s+"),
 ]
 
@@ -209,6 +210,8 @@ class ClaimParser:
             return UnOpExpr(Op.Add, self.parse_primary())
         elif self.consume("MINUS"):
             return UnOpExpr(Op.Minus, self.parse_primary())
+        elif self.consume("ABS"):
+            return UnOpExpr(Op.Abs, self.parse_primary())
         else:
             return self.parse_primary()
 

@@ -19,6 +19,7 @@ class Op(Enum):
     Mult = OpType("*", True, False, False)
     Div = OpType("/", True, False, False)
     Mod = OpType("%", True, False, False)
+    Abs = OpType("||", True, False, False)
 
     # Comparison Operators
     Eq = OpType("==", False, True, False)
