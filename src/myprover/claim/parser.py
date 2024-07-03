@@ -33,47 +33,6 @@ var            = [a-zA-Z_][a-zA-Z0-9_]*
 subscript      = var '[' add ']' | var '[' add `:` ']' | var '[' `:` add ']' | var '[' add `:` add ']'
 """
 
-
-# Tokenizer
-token_specification = [
-    ("INT", r"\d+"),
-    ("BOOL", r"\b(True|False)\b"),
-    ("VAR", r"[A-Za-z_]\w*"),
-    # ("NEG", r"-"),
-    ("PLUS", r"\+"),
-    ("MINUS", r"-"),
-    ("MULT", r"\*"),
-    ("DIV", r"//"),
-    ("MOD", r"%"),
-    ("AND", r"\band\b"),
-    ("OR", r"\bor\b"),
-    ("NOT", r"\bnot\b"),
-    ("IMPLIES", r"==>"),
-    ("IFF", r"<==>"),
-    ("FORALL", r"\bforall\b"),
-    ("EXISTS", r"\bexists\b"),
-    ("LT", r"<"),
-    ("LE", r"<="),
-    ("GT", r">"),
-    ("GE", r">="),
-    ("EQ", r"=="),
-    ("NEQ", r"!="),
-    ("LPAREN", r"\("),
-    ("RPAREN", r"\)"),
-    ("LBRACKET", r"\["),
-    ("RBRACKET", r"\]"),
-    ("COMMA", r","),
-    ("COLON", r":"),
-    ("DOUBLECOLON", r"::"),
-    ("WHITESPACE", r"\s+"),
-]
-
-token_regex = "|".join(f"(?P<{pair[0]}>{pair[1]})" for pair in token_specification)
-tokens = re.compile(token_regex)
-
-
-# Parser
-# Tokenizer
 token_specification = [
     ("INT", r"\d+"),
     ("BOOL", r"\b(True|False)\b"),
@@ -81,7 +40,7 @@ token_specification = [
     ("PLUS", r"\+"),
     ("MINUS", r"-"),
     ("MULT", r"\*"),
-    ("DIV", r"//"),
+    ("DIV", r"/"),
     ("MOD", r"%"),
     ("AND", r"\band\b"),
     ("OR", r"\bor\b"),

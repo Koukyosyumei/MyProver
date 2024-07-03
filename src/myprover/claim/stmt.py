@@ -30,7 +30,7 @@ class Stmt(metaclass=ABCMeta):
 
     @abstractmethod
     def assign_variable(self, old_var, new_var):
-        """Assign a new variable in place of an old variable in the expression.
+        """Assign a new variable in place of an old variable in the statament.
 
         Args:
             old_var (VarExpr): The variable to be replaced.
@@ -64,7 +64,7 @@ class SkipStmt(Stmt):
         return set()
 
     def assign_variable(self, old_var, new_var):
-        """Assign a new variable in place of an old variable in the expression.
+        """Assign a new variable in place of an old variable in the statament.
 
         Args:
             old_var (VarExpr): The variable to be replaced.
@@ -106,7 +106,7 @@ class AssignStmt(Stmt):
         return set()
 
     def assign_variable(self, old_var, new_var):
-        """Assign a new variable in place of an old variable in the expression.
+        """Assign a new variable in place of an old variable in the statament.
 
         Args:
             old_var (VarExpr): The variable to be replaced.
@@ -156,7 +156,7 @@ class IfElseStmt(Stmt):
         return set()
 
     def assign_variable(self, old_var, new_var):
-        """Assign a new variable in place of an old variable in the expression.
+        """Assign a new variable in place of an old variable in the statament.
 
         Args:
             old_var (VarExpr): The variable to be replaced.
@@ -210,7 +210,7 @@ class CompoundStmt(Stmt):
         }
 
     def assign_variable(self, old_var, new_var):
-        """Assign a new variable in place of an old variable in the expression.
+        """Assign a new variable in place of an old variable in the statament.
 
         Args:
             old_var (VarExpr): The variable to be replaced.
@@ -253,7 +253,7 @@ class AssumeStmt(Stmt):
         return set()
 
     def assign_variable(self, old_var, new_var):
-        """Assign a new variable in place of an old variable in the expression.
+        """Assign a new variable in place of an old variable in the statament.
 
         Args:
             old_var (VarExpr): The variable to be replaced.
@@ -293,7 +293,7 @@ class AssertStmt(Stmt):
         return set()
 
     def assign_variable(self, old_var, new_var):
-        """Assign a new variable in place of an old variable in the expression.
+        """Assign a new variable in place of an old variable in the statament.
 
         Args:
             old_var (VarExpr): The variable to be replaced.
@@ -337,7 +337,7 @@ class WhileStmt(Stmt):
         return set()
 
     def assign_variable(self, old_var, new_var):
-        """Assign a new variable in place of an old variable in the expression.
+        """Assign a new variable in place of an old variable in the statament.
 
         Args:
             old_var (VarExpr): The variable to be replaced.

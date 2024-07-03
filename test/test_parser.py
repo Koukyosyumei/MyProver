@@ -99,7 +99,7 @@ def test_parser_subscript():
         == "(Subscript (Var x) (Slice (BinOp (Literal IntValue 3) Op.Mult (Literal IntValue 2)) -> (Literal IntValue 10)))"
     )
 
-    p = mp.ClaimParser("x[a+3*2:10//2]")
+    p = mp.ClaimParser("x[a+3*2:10/2]")
     e = p.parse_expr()
     assert (
         str(e)
