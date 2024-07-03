@@ -122,7 +122,7 @@ class MyProver:
         return True
 
 
-def prove(func, varname2types=None, skip_inv=True):
+def prove(func, varname2types=None, skip_inv=False):
     precond = getattr(func, "_precondition", "True")
     postcond = getattr(func, "_postcondition", "True")
     code = inspect.getsource(func)

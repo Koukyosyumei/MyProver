@@ -15,5 +15,5 @@ def cumsum(n):
         r = r + i
         i = i + 1
 
-assert prove(cumsum, {"n": int}, False)[0]
+assert prove(cumsum, {"n": int})[0]
 ```
