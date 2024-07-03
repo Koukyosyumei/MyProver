@@ -23,6 +23,7 @@ class MyProver:
         Initializes the MyProver instance with an empty dictionary for scope name to variable types mapping.
         """
         self.sname2var_types = {}
+        self.varname2numhavoced = {}
 
     def register(self, scope_name: str, var2types: dict[str, type]) -> None:
         self.sname2var_types[scope_name] = var2types
@@ -69,7 +70,7 @@ class MyProver:
 
         conditions_for_invariants = []
         if not skip_verification_of_invariant:
-            encoded_claim_ast, invariants = encode_while_loop(claim_ast)
+            encoded_claim_ast, invariants = encode_while_loop(claim_ast, self.varname2numhavoced)
             inv_expr = list(invariants)[
                 0
             ]  # TODO: Support multiple while-loops within a function

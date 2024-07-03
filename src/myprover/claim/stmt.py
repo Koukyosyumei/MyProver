@@ -361,10 +361,12 @@ class HavocStmt(Stmt):
 
     Args:
         var_name (str): The name of the variable to havoc.
+        num_havoced (int): How many times this variable is havoced.
     """
 
-    def __init__(self, var_name: str):
+    def __init__(self, var_name: str, num_havoced: int=0):
         self.var_name = var_name
+        self.num_havoced = num_havoced
 
     def __repr__(self):
         return f"(Havoc {self.var_name})"
