@@ -70,7 +70,9 @@ class MyProver:
 
         conditions_for_invariants = []
         if not skip_verification_of_invariant:
-            encoded_claim_ast, invariants = encode_while_loop(claim_ast, self.varname2numhavoced)
+            encoded_claim_ast, invariants = encode_while_loop(
+                claim_ast, self.varname2numhavoced
+            )
             inv_expr = list(invariants)[
                 0
             ]  # TODO: Support multiple while-loops within a function

@@ -364,7 +364,7 @@ class HavocStmt(Stmt):
         num_havoced (int): How many times this variable is havoced.
     """
 
-    def __init__(self, var_name: str, num_havoced: int=0):
+    def __init__(self, var_name: str, num_havoced: int = 0):
         self.var_name = var_name
         self.num_havoced = num_havoced
 
