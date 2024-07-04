@@ -327,7 +327,7 @@ class PyToDPClaim(PyToClaim):
         else:
             if isinstance(right_expr, DPAssignStmt):
                 return CompoundStmt(
-                    AssumeStmt(
+                    AssertStmt(
                         BinOpExpr(
                             VarExpr(left_varname + "#1"),
                             Op.Eq,
@@ -344,8 +344,9 @@ class PyToDPClaim(PyToClaim):
 
 
 class ClaimToZ3:
-    def __init__(self, name_dict):
+    def __init__(self, name_dict, array_length_dict=dict()):
         self.name_dict = name_dict
+        self.array_length_dict = array_length_dict
 
     def visit(self, expr):
         if isinstance(expr, LiteralExpr):
@@ -412,6 +413,18 @@ class ClaimToZ3:
             return c1 < c2
         elif node.op == Op.Le:
             return c1 <= c2
+        elif node.op == Op.Adj:
+            length = self.array_length_dict[str(c1)]
+            conds = []
+            indices = [z3.Int(f'@i_{i}') for i in range(length)]
+            for i in indices:
+                conds.append(z3.And(0 <= i, i < length))
+            difference_count = z3.Sum([z3.If(c1[i] != c2[i], 1, 0) for i in indices])
+            conds.append(difference_count == 1)
+            cc = conds[0]
+            for c in conds[1:]:
+                cc = z3.And(cc, c)
+            return cc
         else:
             raise NotImplementedError(f"{node.op} is not supported")
 

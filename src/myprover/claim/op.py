@@ -24,6 +24,7 @@ class Op(Enum):
     # Comparison Operators
     Eq = OpType("==", False, True, False)
     NEq = OpType("!=", False, True, False)
+    Adj = OpType("~", False, True, False)
     Lt = OpType("<", False, True, False)
     Le = OpType("<=", False, True, False)
     Gt = OpType(">", False, True, False)

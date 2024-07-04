@@ -36,6 +36,7 @@ class MyProver:
         precond_str: str,
         postcond_str: str,
         skip_verification_of_invariant: bool = True,
+        array_length_dict: dict[str, int] = dict()
     ) -> bool:
         """
         Verifies the correctness of a function based on the given precondition and postcondition strings.
@@ -56,12 +57,9 @@ class MyProver:
         py_ast = ast.parse(code_str)
 
         claim_ast = PyToClaim().visit(py_ast)
-
-        print(claim_ast.collect_assigned_varnames())
         if self.dp_mode:
             claim_ast = PyToDPClaim(claim_ast.collect_assigned_varnames()).visit(py_ast)
             claim_ast = CompoundStmt(AssignStmt(VarExpr("v_eps#"), LiteralExpr(IntValue(0))), claim_ast)
-        print(pretty_repr(claim_ast))
 
         precond_expr = ClaimParser(precond_str).parse_expr()
         postcond_expr = ClaimParser(postcond_str).parse_expr()
@@ -116,7 +114,7 @@ class MyProver:
                 z3_env_varname2type[n] = z3.Array(n, z3.IntSort(), z3.IntSort())
 
         solver = z3.Solver()
-        converter = ClaimToZ3(z3_env_varname2type)
+        converter = ClaimToZ3(z3_env_varname2type, array_length_dict)
 
         for cond in conditions_to_be_proved:
             solver.push()

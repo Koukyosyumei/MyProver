@@ -235,43 +235,39 @@ def test_while_with_multiple_invariants():
     assert prove(cumsum, {"n": int}, False)[0]
 
 
-""""
 def test_while_dp():
-    def smartsum(l, length_l, q, out):
+    def smartsum(db, q, out):
         net = 0
         n = 0
         c = 0
         i = 0
-        while 0 < length_l:
-            invariant("eps# >= 0")
-            invariant("v_eps# >= 0")
-            invariant("i#1 >= 0 and i#2 >= 0 and i#1 == i#2")
+        while i < 10:
+            invariant("db#1 ~ db#2")
             invariant("out#1 == out#2")
             invariant("net#1 == net#2")
-            invariant("||(c#1 - c#2) <= 1")
             invariant("n#1 == n#2")
-            invariant("i#1 != i#2 ==> v_eps# == 0")
-            invariant("c#1 != c#2 ==> i#1 == i#2 and v_eps# <= eps#")
-            invariant("i#1 == i#2 ==> v_eps# <= 2 * eps#")
-            if length_l % q == 0:
-                x = laplace(c + l[i])
+            invariant("||(c#1 - c#2) <= 1")
+            invariant("db#1 != db#2 ==> (v_eps# == 0)")
+            invariant("c#1 != c#2 ==> (db#1 == db#2 and v_eps# <= eps#)")
+            invariant("db#1 == db#2 ==> (v_eps# <= 2 * eps#)")
+            if 10 % q == 0:
+                x = laplace(c + db[i])
                 n = x + n
                 net = n
                 c = 0
                 out[i] = net
             else:
-                x = laplace(l[i])
+                x = laplace(db[i])
                 net = net + x
-                c = c + l[i]
+                c = c + db[i]
                 out[i] = net
             i = i + 1
-            length_l = length_l - 1
         return out
 
     code = inspect.getsource(smartsum)
     code = code.lstrip()
 
-    precond = "length_l#1 >= 0 and length_l#2 >= 0 and eps# >= 0 and v_eps# >= 0 and q > 0"
+    precond = "db#1 ~ db#2 and eps# >= 0"
     postcond = "v_eps# <= 2 * eps#"
     prover = mp.MyProver(dp_mode=True)
     prover.register(
@@ -284,13 +280,10 @@ def test_while_dp():
             "q": int,
             "x": int,
             "out": list[int],
-            #"out#1": list[int],
-            #"out#2": list[int],
-            "l": list[int],
+            "db": list[int],
             "length_l": int,
             "v_eps#": int,
             "eps#": int,
         },
     )
-    assert prover.verify(code, "smartsum", precond, postcond, False)[0]
-"""
+    assert prover.verify(code, "smartsum", precond, postcond, False, {"db":10})

@@ -16,11 +16,11 @@ from .value import BoolValue, IntValue
 expr           = quantification || logocal
 quantification = ('forall' | 'exists') (var | var [:var]) '::' logical
 logical        = "not" equality | equality ("and" equality | "or" equality | "==>" equality | "<==>" equality)*
-equality       = relational ("==" relational | "!=" relational)*
+equality       = relational ("==" relational | "!=" relational | "~" relational)*
 relational     = add ("<" add | "<=" add | ">" add | ">=" add)*
 add            = mul ("+" mul | "-" mul)*
 mul            = unary ("*" unary | "/" unary)*
-unary          = ("+" | "-")? primary
+unary          = ("+" | "-" | "||")? primary
 primary        = bool
                | num
                | var
@@ -56,6 +56,7 @@ token_specification = [
     ("GT", r">"),
     ("EQ", r"=="),
     ("NEQ", r"!="),
+    ("ADJACENT", r"~"),
     ("LPAREN", r"\("),
     ("RPAREN", r"\)"),
     ("LBRACKET", r"\["),
@@ -151,6 +152,8 @@ class ClaimParser:
                 left_expr = BinOpExpr(left_expr, Op.Eq, self.parse_relational())
             elif self.consume("NEQ"):
                 left_expr = BinOpExpr(left_expr, Op.NEq, self.parse_relational())
+            elif self.consume("ADJACENT"):
+                left_expr = BinOpExpr(left_expr, Op.Adj, self.parse_relational())
             else:
                 return left_expr
 
