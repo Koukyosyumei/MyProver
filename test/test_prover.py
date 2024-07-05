@@ -160,6 +160,28 @@ def test_verify_with_assume_stmt(prover):
     postcond = "x >= 1"
     assert verify_func(prover, assume_func, precond, postcond)
 
+def test_array_assignment(prover):
+    def swap(A, X, Y):
+        R = A[X]
+        A[X] = A[Y]
+        A[Y] = R
+
+    prover.register("swap", {"A":list[int], "X":int, "Y":int, "R":int, "x":int, "y":int})
+    precond = "A[X] == x and A[Y] == y"
+    postcond = "A[X] == y and A[Y] == x"
+    assert verify_func(prover, swap, precond, postcond)
+
+def test_wrong_array_assignment(prover):
+    def swap(A, X, Y):
+        R = A[X]
+        A[X] = R
+        A[Y] = R
+
+    prover.register("swap", {"A":list[int], "X":int, "Y":int, "R":int, "x":int, "y":int})
+    precond = "A[X] == x and A[Y] == y"
+    postcond = "A[X] == y and A[Y] == x"
+    with pytest.raises(mp.VerificationFailureError):
+        assert verify_func(prover, swap, precond, postcond)
 
 def test_while_with_false_invariant(prover):
     def func(x):

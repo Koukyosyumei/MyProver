@@ -377,7 +377,11 @@ class ClaimToZ3:
         # return self.name_dict[node.name]
 
     def visit_Subscript(self, node):
-        return z3.Select(self.name_dict[node.var.name], self.visit(node.subscript))
+        if str(node.subscript) not in node.assign:
+            return z3.Select(self.name_dict[node.var.name], self.visit(node.subscript))
+        else:
+            print(11111111111111)
+            return self.visit(node.assign[str(node.subscript)])
 
     def visit_BinOp(self, node):
         c1 = self.visit(node.e1)

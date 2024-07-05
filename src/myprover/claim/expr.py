@@ -137,10 +137,13 @@ class SubscriptExpr(Expr):
         super().__init__()
         self.var = var
         self.subscript = subscript
-        self.assign={}
+        self.assign={} # dict[SliceExpr, Expr]
 
     def __repr__(self):
-        return f"(Subscript {self.var} {self.subscript})"
+        if len(self.assign) == 0:
+            return f"(Subscript {self.var} {self.subscript})"
+        else:
+            return f"(Subscript {self.var} {self.subscript} [{self.assign}])"
 
     def collect_varnames(self):
         """Collect variable names in the subscript expression.
@@ -160,6 +163,11 @@ class SubscriptExpr(Expr):
         Returns:
             SubscriptExpr: The unchanged subscript expression.
         """
+        if isinstance(old_var, SubscriptExpr) and self.var.name == old_var.var.name:
+            self.assign[str(old_var.subscript)] = new_var
+        else:
+            for k, v in self.assign.items():
+                self.assign[k] = v.assign_variable(old_var, new_var)
         return self
 
     def clone(self):
