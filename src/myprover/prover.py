@@ -64,10 +64,6 @@ class MyProver:
         precond_expr = ClaimParser(precond_str).parse_expr()
         postcond_expr = ClaimParser(postcond_str).parse_expr()
 
-        print(pretty_repr(claim_ast))
-        print("pre", precond_expr)
-        print("post", postcond_expr)
-
         resolve_stmt_type(self.sname2var_types[scope_name], claim_ast)
         actual, _ = resolve_expr_type(self.sname2var_types[scope_name], precond_expr)
         check_and_update_varname2type(
@@ -98,7 +94,6 @@ class MyProver:
         wp, ac = derive_weakest_precondition(
             claim_ast, postcond_expr, self.sname2var_types[scope_name]
         )
-        print("wp", wp)
         conditions_to_be_proved = (
             conditions_for_invariants
             + [BinOpExpr(precond_expr, Op.Implies, wp)]
@@ -126,8 +121,6 @@ class MyProver:
         for cond in conditions_to_be_proved:
             solver.push()
             z3_cond = converter.visit(UnOpExpr(Op.Not, cond))
-            print("####", cond)
-            print("----", z3_cond)
             solver.add(z3_cond)
             result = solver.check()
             if str(result) == "sat":
